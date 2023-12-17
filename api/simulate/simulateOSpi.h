@@ -31,7 +31,7 @@ public:
     virtual int64_t get_sysorderid(uint32_t orderid);
 
     //处理报单线程
-    void handle_order(int inst_id);
+    virtual void handle_order(int inst_id);
 
 private:
     int handle_deal(Order*, const MdFeed*, const MdFeed*, double, int, int);

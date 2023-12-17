@@ -58,7 +58,7 @@ bool SimulateOSpi::stop()
     return true;
 }
 
-int64_t get_sysorderid(uint32_t orderid) 
+int64_t SimulateOSpi::get_sysorderid(uint32_t orderid)
 {
     return -1;
 }

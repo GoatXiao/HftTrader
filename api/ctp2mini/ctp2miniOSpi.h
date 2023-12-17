@@ -49,7 +49,7 @@ public:
     virtual bool send_order(Order& order);
     virtual bool cancel_order(uint32_t id);
     virtual int64_t get_sysorderid(uint32_t);
-
+    virtual void handle_order(int inst_id) { }
 private:
     bool IsErrorRspInfo(CThostFtdcRspInfoField* pRspInfo);
 

@@ -87,7 +87,7 @@ Order& XeleOSpi::get_order(uint32_t i)
     return Orders[i].order;
 }
 
-bool XeleOSpi::insertOrder(Order& order)
+bool XeleOSpi::send_order(Order& order)
 {
     State* state = order.state;
     const auto& instrument = state->instrument;
@@ -156,7 +156,7 @@ bool XeleOSpi::insertOrder(Order& order)
     return true;
 }
 
-bool XeleOSpi::cancelOrder(const uint32_t& id)
+bool XeleOSpi::cancel_order(const uint32_t& id)
 {
     auto& data = Orders[id];
     auto& action = data.OrderAction;

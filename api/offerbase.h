@@ -37,7 +37,7 @@ public:
     virtual bool send_order(Order& order) { return false; };
     virtual bool cancel_order(uint32_t orderid) { return false; };
     virtual int64_t get_sysorderid(uint32_t orderid) { return -1; };
-
+    virtual void handle_order(int inst_id) { }
 public:
     inline InstrumentState* get(int idx)
     {

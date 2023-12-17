@@ -118,7 +118,7 @@ Order& V10OSpi::get_order(uint32_t i)
     return Orders[i].order;
 }
 
-bool V10OSpi::cancelOrder(const uint32_t& id)
+bool V10OSpi::cancel_order(const uint32_t& id)
 {
     auto& order = Orders[id];
     OrderDelete& ref = order.OrderAction;
@@ -134,7 +134,7 @@ bool V10OSpi::cancelOrder(const uint32_t& id)
     return true;
 }
 
-bool V10OSpi::insertOrder(Order& order)
+bool V10OSpi::send_order(Order& order)
 {
     State* state = order.state;
     const auto& instrument = state->instrument;

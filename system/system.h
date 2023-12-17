@@ -319,7 +319,7 @@ struct alignas(8) InstrumentState
     template<char direct> void update(char offset, double pr, int v, double& _fee) {
         if (direct == 'b') {
             p_cfg->position += v;
-            switch ((ORDER_OFFSET)offset) {
+            switch ((uint16_t)offset) {
             case ORDER_OFFSET::O_OPEN: 
                 _fee = pr * p_cfg->FeeOpen[0] + p_cfg->FeeOpen[1];
                 p_cfg->inventory[0] += v; 
@@ -348,7 +348,7 @@ struct alignas(8) InstrumentState
         }
         if (direct == 's') {
             p_cfg->position -= v;
-            switch ((ORDER_OFFSET)offset) {
+            switch ((uint16_t)offset) {
             case ORDER_OFFSET::O_OPEN: 
                 _fee = pr * p_cfg->FeeOpen[0] + p_cfg->FeeOpen[1];
                 p_cfg->inventory[2] += v; 

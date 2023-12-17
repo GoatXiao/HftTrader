@@ -104,7 +104,7 @@ bool Ctp2MiniOSpi::stop()
     return true;
 }
 
-int64_t get_sysorderid(uint32_t orderid) 
+int64_t Ctp2MiniOSpi::get_sysorderid(uint32_t orderid) 
 {
     return ctp2mini_OrderPool[orderid].sysorderid; 
 }

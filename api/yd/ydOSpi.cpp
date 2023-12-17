@@ -87,7 +87,7 @@ bool YDOSpi::send_order(Order& order)
     return false;
 }
 
-bool YDOSpi::cancelOrder(uint32_t id)
+bool YDOSpi::cancel_order(uint32_t id)
 {
     const auto& ref = ydOrders[id].OrderAction;
     if (ref.orderid > 0) 

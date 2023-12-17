@@ -25,10 +25,9 @@ private:
     static void run();
     static void run_cb();
 public:
-    static void push_to_log(LOGGER_TYPE type, const Order& order, int userdata = 0, double price = 0, double fee = 0);
+    void push_to_log(LOGGER_TYPE type, const Order& order, int userdata = 0, double price = 0, double fee = 0);
 private:
     void init();
-
     void OnSendRtn(uint32_t);
     void OnSendError(uint32_t, int);
     void OnCancelRtn(uint32_t, int);

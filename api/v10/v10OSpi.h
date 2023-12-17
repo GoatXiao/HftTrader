@@ -44,13 +44,13 @@ public:
 
     virtual bool stop();
 
-    virtual bool insertOrder(Order& order);
+    virtual bool send_order(Order& order);
 
-    virtual bool cancelOrder(const uint32_t& id);
+    virtual bool cancel_order(const uint32_t& id);
 
     virtual std::vector<std::string> getInsts();
 
-    virtual void handle_order(const State* state) {}
+    virtual void handle_order(int inst_id) {}
 
     inline Order& get_order(uint32_t i);
 

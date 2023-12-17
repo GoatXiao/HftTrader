@@ -112,7 +112,7 @@ namespace TRADER
         if (Agent::m_pOspi->send_order(order))
         {
             Agent::m_pOspi->send(order);
-            Agent::push_to_log(LOGGER_TYPE::SEND_LOG, order);
+            Agent::m_pAgent->push_to_log(LOGGER_TYPE::SEND_LOG, order);
             return order.orderid;
         }
         return 0;
@@ -124,7 +124,7 @@ namespace TRADER
         {
             auto& order = Agent::m_pOspi->get_order(orderid);
             order.status = ORDER_STATUS::O_CANCELING;
-            Agent::push_to_log(LOGGER_TYPE::CANCEL_LOG, order);
+            Agent::m_pAgent->push_to_log(LOGGER_TYPE::CANCEL_LOG, order);
             return true;
         }
         return false;
@@ -147,7 +147,7 @@ namespace TRADER
                     if (Agent::m_pOspi->cancel_order(order.orderid))
                     {
                         order.status = ORDER_STATUS::O_CANCELING;
-                        Agent::push_to_log(LOGGER_TYPE::CANCEL_LOG, order);
+                        Agent::m_pAgent->push_to_log(LOGGER_TYPE::CANCEL_LOG, order);
                     }
                 }
             }
@@ -170,7 +170,7 @@ namespace TRADER
             if (Agent::m_pOspi->send_order(order))
             {
                 Agent::m_pOspi->send(order);
-                Agent::push_to_log(LOGGER_TYPE::SEND_LOG, order);
+                Agent::m_pAgent->push_to_log(LOGGER_TYPE::SEND_LOG, order);
                 return order.orderid;
             }
         }
@@ -201,7 +201,7 @@ namespace TRADER
                 if (Agent::m_pOspi->send_order(order))
                 {
                     Agent::m_pOspi->send(order);
-                    Agent::push_to_log(LOGGER_TYPE::SEND_LOG, order);
+                    Agent::m_pAgent->push_to_log(LOGGER_TYPE::SEND_LOG, order);
                     return order.orderid;
                 }
             }
@@ -226,7 +226,7 @@ namespace TRADER
                 if (Agent::m_pOspi->send_order(order))
                 {
                     Agent::m_pOspi->send(order);
-                    Agent::push_to_log(LOGGER_TYPE::SEND_LOG, order);
+                    Agent::m_pAgent->push_to_log(LOGGER_TYPE::SEND_LOG, order);
                     return order.orderid;
                 }
             }
@@ -348,7 +348,7 @@ void Agent::OnCancelRtn(uint32_t orderid, int num)
         // user func
         auto* pUser = (UserStrategyBase*)order.pUser;
         pUser->on_cancel_rtn(&order, num);
-        Agent::push_to_log(LOGGER_TYPE::COMPLETE_LOG, order);
+        push_to_log(LOGGER_TYPE::COMPLETE_LOG, order);
     }
 
 }
@@ -363,10 +363,10 @@ void Agent::OnTradeRtn(uint32_t orderid, double pr, int v)
     // user func
     auto* pUser = (UserStrategyBase*)order.pUser;
     pUser->on_trade_rtn(&order, pr, v);
-    Agent::push_to_log(LOGGER_TYPE::TRADE_LOG, order, v, pr, fee);
+    push_to_log(LOGGER_TYPE::TRADE_LOG, order, v, pr, fee);
     
     if (done) {
-        Agent::push_to_log(LOGGER_TYPE::COMPLETE_LOG, order);
+        push_to_log(LOGGER_TYPE::COMPLETE_LOG, order);
     }
 }
 
@@ -375,7 +375,7 @@ void Agent::OnCancelError(uint32_t orderid, int errid)
     auto& order = Agent::m_pOspi->get_order(orderid);
     Agent::m_pOspi->cancel_error(order);
 
-    Agent::push_to_log(LOGGER_TYPE::ERR_LOG, order, errid);
+    push_to_log(LOGGER_TYPE::ERR_LOG, order, errid);
 }
 
 void Agent::OnSendError(uint32_t orderid, int errid)
@@ -387,7 +387,7 @@ void Agent::OnSendError(uint32_t orderid, int errid)
     auto* pUser = (UserStrategyBase*)order.pUser;
     pUser->on_send_err_rtn(&order, errid);
 
-    Agent::push_to_log(LOGGER_TYPE::ERR_LOG, order, errid);
+    push_to_log(LOGGER_TYPE::ERR_LOG, order, errid);
 }
 
 void Agent::push_to_log(LOGGER_TYPE type, const Order& order, int userdata, double price, double fee)
@@ -395,7 +395,7 @@ void Agent::push_to_log(LOGGER_TYPE type, const Order& order, int userdata, doub
     const auto* state = Agent::m_pOspi->get(order.inst_id);
     const auto* p_cfg = state->p_cfg;
     int64_t ns = TIMER::tsc();
-    switch (type)
+    switch ((uint16_t)type)
     {
     case LOGGER_TYPE::COMPLETE_LOG:
     {
@@ -504,7 +504,7 @@ void Agent::run()
     SYSTEM::bind_cpuid(CPUID::AGENT_CPUID, THREAD_PRIORITY::THREAD_AGENT);
 
     auto* qcbtoa = QUEUE::get_api2agent();
-    auto& v_qutoa = QUEUE::get_user2agent();
+    auto& v_qutoa = (const std::vector<Queue::qUTOA*>)QUEUE::get_user2agent();
 
     while (Agent::running)
     {
@@ -513,10 +513,10 @@ void Agent::run()
             q->tryPop(
                 [&](Queue::qUTOA::MsgHeader* header) 
                 {
-                    int64_t ns = Timer::tsc();
-                    auto* p = (UerStrategyBase::SIGNAL*)(header + 1);
+                    int64_t ns = TIMER::tsc();
+                    auto* p = (UserStrategyBase::SIGNAL*)(header + 1);
                     const auto* p_cfg = p->p_cfg;
-                    auto* p_user = p->user;
+                    auto* p_user = p->p_user;
 
                     int inst_id = p_cfg->inst_id;
                     auto* state = Agent::m_pOspi->get(inst_id);
