@@ -1,8 +1,7 @@
 #ifndef  __CTP2MINIOSPI_H__
 #define  __CTP2MINIOSPI_H__
 
-//#include "../../core/agent/agent_strategy.h"
-#include "include/ctp2mini/ThostFtdcTraderApi.h"
+#include "../../include/ctp2mini/ThostFtdcTraderApi.h"
 #include "../offerbase.h"
 
 //"INSUFFICIENT_MONEY" value="31" prompt="CTP:×Ê½ð²»×ã"

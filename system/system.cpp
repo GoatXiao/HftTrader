@@ -36,10 +36,11 @@ namespace QUEUE
     inline Queue::qFTOL* get_dce2log() { return &q_dce2log; };
     inline Queue::qFTOL* get_czce2log() { return &q_czce2log; };
     
-    inline Queue::qFTOU* get_shfe2user() { return &q_shfe2log; };
-    inline Queue::qFTOU* get_dce2user() { return &q_dce2log; };
-    inline Queue::qFTOU* get_czce2user() { return &q_czce2log; };
+    inline Queue::qFTOU* get_shfe2user() { return &q_shfe2user; };
+    inline Queue::qFTOU* get_dce2user() { return &q_dce2user; };
+    inline Queue::qFTOU* get_czce2user() { return &q_czce2user; };
 
+    inline std::vector<Queue::qUTOA*> get_user2agent() { return vp_q_user2agent; }
     inline Queue::qUTOA* get_user2agent(int i) { return vp_q_user2agent[i]; };
     inline Queue::qCBTOA* get_api2agent() { return &q_api2agent; };
     inline Queue::qATOL* get_agent2log() { return &q_agent2log; };
@@ -86,48 +87,58 @@ namespace SYSTEM
     inline InstrumentConfig& get_inst_cfg(int idx) { return v_iConfig[idx]; };
     inline ThreadConfig& get_thread_cfg(int idx) { return v_tConfig[idx]; };
 
-    inline InstrumentConfig* find_inst_cfg(const char* inst) { 
+    inline InstrumentConfig* find_inst_cfg(const char* inst) 
+    { 
         return g_InstrumentMap.fastFind(inst);
     };
 
     // libconfig API
-    bool read_cfg_file(Config& cfg, const char* fn) { 
+    bool read_cfg_file(Config& cfg, const char* fn) 
+    { 
         return Tools::read_cfg_file(cfg, fn); 
     };
 
-    Setting& get_cfg_root(const Config& cfg) {
+    Setting& get_cfg_root(const Config& cfg) 
+    {
         return Tools::get_cfg_root(cfg);
     };
 
-    int get_cfg_length(const Setting& cfg) {
+    int get_cfg_length(const Setting& cfg) 
+    {
         return Tools::get_cfg_length(cfg);
     };
 
-    Setting& get_cfg_member(const Setting& cfg, const char* path) {
+    Setting& get_cfg_member(const Setting& cfg, const char* path) 
+    {
         return Tools::get_cfg_member(cfg, path);
     };
 
     template<typename T, bool str_type=false>
-    void get_cfg_item(const Setting& cfg, const char* path, T& item) {
+    void get_cfg_item(const Setting& cfg, const char* path, T& item) 
+    {
         Tools::get_cfg_item<T, str_type>(cfg, path, item);
     };
 
     template<typename T, bool str_type=false>
-    void get_cfg_array(const Setting& cfg, const char* path, std::vector<T>& vec) {
+    void get_cfg_array(const Setting& cfg, const char* path, std::vector<T>& vec) 
+    {
         Tools::get_cfg_array(cfg, path, vec);
     };
 
     // Terminal Console
-    void reload_instrument_config(const char* inst) {
+    void reload_instrument_config(const char* inst) 
+    {
         volatile auto* p_cfg = SYSTEM::find_inst_cfg(inst);
         if (p) { Tools::reload_instrument_config(p); }
     };
 
-    void reload_thread_config(int thread_id) {
+    void reload_thread_config(int thread_id) 
+    {
         if (thread_id < gConfig.num_strategy_threads) {
             Tools::reload_thread_config(thread_id);
         }
     };
+
 } // namespace SYSTEM
 
 

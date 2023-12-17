@@ -1,14 +1,14 @@
 #include "core.h"
 
-#include "logger/logger.h"
+#include "../logger/logger.h"
 
-#include "feed/feed_shfe.h"
-#include "feed/feed_dce.h"
-#include "feed/feed_czce.h"
-#include "feed/feed_sim.h"
+#include "../feed/shfe/feed_shfe.h"
+#include "../feed/dce/feed_dce.h"
+#include "../feed/czce/feed_czce.h"
+#include "../feed/simulate/feed_sim.h"
 
-#include "strategy/strategy.h"
-#include "agent/agent.h"
+#include "../strategy/strategy.h"
+#include "../agent/agent.h"
 
 Core::Core(int pltype) : m_plt(pltype)
 {

@@ -19,18 +19,15 @@ public:
     virtual void close();
 
     void handle_cb(const Queue::CBTOA*);
-
 private:
     Queue::qATOL* m_atol_q = nullptr;
 
     static void run();
     static void run_cb();
-
+public:
+    static void push_to_log(LOGGER_TYPE type, const Order& order, int userdata = 0, double price = 0, double fee = 0);
 private:
     void init();
-
-    template<LOGGER_TYPE>
-    void push_to_log(const Order&, int userdata = 0, double price = 0, double fee = 0);
 
     void OnSendRtn(uint32_t);
     void OnSendError(uint32_t, int);

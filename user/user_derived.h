@@ -13,7 +13,7 @@
  *
  *  Be aware of data locality.
  */
-struct alignas(8) USER_MSG :public SIGNAL
+struct alignas(8) USER_MSG :public UserStrategyBase::SIGNAL
 {
     int inst_id;
     int signal;

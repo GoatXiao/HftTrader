@@ -20,21 +20,21 @@ struct alignas(64) OrderMap
     int inqueue[2] = {0, 0}; 
 
     void reset(int n = 256) {
-	    SI2P.clear();
-	    LI2P.clear();
+        SI2P.clear();
+        LI2P.clear();
         SP2V.clear();
-	    LP2V.clear();
-	    SI2P.reserve(n);
-	    LI2P.reserve(n);
+        LP2V.clear();
+        SI2P.reserve(n);
+        LI2P.reserve(n);
         SP2V.reserve(n);
-	    LP2V.reserve(n);
+        LP2V.reserve(n);
         inqueue[0] = 0;
         inqueue[1] = 0;
-    }:
+    };
 
     void print() const {
-        fmt::print("#OrderByID({},{}),#OrderByPrice({},{}),Total({},{})\n"
-            LI2P.size(),SI2P.size(),LP2V.size(),SP2V.size(),inqueue[0],inqueue[1]
+        fmt::print("#OrderByID({},{}),#OrderByPrice({},{}),Total({},{})\n",
+            LI2P.size(), SI2P.size(), LP2V.size(), SP2V.size(), inqueue[0], inqueue[1]
         );
     };
     
@@ -511,7 +511,7 @@ struct Queue {
     using qUTOA = SPSCVarQueueOPT<4096>;
 
     using qFTOL = SPSCQueueOPT<MdFeed, 1024>;
-    using qFTOU = Dsipatcher<MdFeed, 1024>;
+    using qFTOU = Dispatcher<MdFeed, 1024>;
 };
 
 

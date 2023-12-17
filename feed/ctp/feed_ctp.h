@@ -14,7 +14,6 @@ public:
     virtual void start();
     virtual void close();
     static bool running;
-
 private:
     static void run();
 };

@@ -1,4 +1,4 @@
-#include "modulebase.h"
+#include "../modulebase.h"
 
 class Core
 {

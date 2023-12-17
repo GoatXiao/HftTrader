@@ -1,4 +1,5 @@
 #include "core/core.h"
+#include "tool/tool.h"
 
 int main(int argc, char* argv[])
 {
@@ -47,13 +48,14 @@ int main(int argc, char* argv[])
     pAgent->LAUNCH_SYSTEM();
 
     //启动用户策略线程
-    const auto& gConfig = SYSTE::get_system_config();
+    const auto& gConfig = SYSTEM::get_system_cfg();
     int num_threads = gConfig.num_strategy_threads;
-    Core* pUser[num_threads];
+    std::vector<Core*> vpUser;
+    vpUser.reserve(num_threads);
     for (int i = 0; i < num_threads; ++i) {
-        Core* pUser[i] = new Core(PLT_USER);
-        pUser[i]->set_strategy_id(i);
-        pUser[i]->LAUNCH_SYSTEM();
+        vpUser[i] = new Core(PLT_USER);
+        vpUser[i]->set_strategy_id(i);
+        vpUser[i]->LAUNCH_SYSTEM();
     }
 
     //控制台
@@ -136,7 +138,7 @@ int main(int argc, char* argv[])
     delete pLogger;
 
     for (int i = 0; i < num_threads; ++i) {
-        delete pUser[i];
+        delete vpUser[i];
     }
 
     return 0;

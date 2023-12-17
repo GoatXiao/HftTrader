@@ -24,14 +24,14 @@
 //选择报盘连接
 //#define __OFFER_CTP2MINI
 //#define __OFFER_V10
-#define __OFFER_XELE
+//#define __OFFER_XELE
 //#define __OFFER_YD
 //END 选择报盘连接
 
 //盘后模拟 宏
-//#define __SIMULATE
-//#define FEED_LOGGER_SIMULATE
-//#define FEED_STRATEGY_SIMULATE
+#define __SIMULATE
+#define FEED_LOGGER_SIMULATE
+#define FEED_STRATEGY_SIMULATE
 
 
 #endif //__COMPILE_H

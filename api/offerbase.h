@@ -16,7 +16,7 @@ public:
         {
             auto& cfg = v_iConfig[i];
             InstrumentState state(&cfg);
-            m_vState[i] = std::move(state);
+            memcpy((void*)(&(m_vState[i])), (void*)(&state), sizeof(InstrumentState));
             const char* inst = cfg.inst.data();
             m_mState.emplace(inst, &m_vState[i]);
         }
@@ -27,9 +27,9 @@ public:
         {
             OrderPool[i].orderid = i;
         }
-    };
+    }
 
-    virtual ~OffserBase() { };
+    virtual ~OfferBase(){}
 
 	virtual bool start() { return true; };
 	virtual bool stop() { return true; };
@@ -108,7 +108,7 @@ public:
     void send_error(Order& o) 
     {
         if (o.ns_recv == 0) {
-            o.ns_recv = TIMER:::tsc();
+            o.ns_recv = TIMER::tsc();
         }
         auto* state = get(o.inst_id);
         int remain = o.volume - o.filled;
@@ -131,7 +131,7 @@ public:
 
     void confirm(Order& o) 
     {
-        ORDER_STATUS status = o.status;
+        ORDER_STATUS status = (ORDER_STATUS)o.status;
         if (ORDER_STATUS::O_CANCELED == status or 
             ORDER_STATUS::O_COMPLETE == status) 
         {
@@ -229,7 +229,7 @@ public:
         o.offset = state->get_offset<d>(
             o.volume + state->get_outstanding_volume<d>()
         );
-        return ORDER_STATUS::O_INVALID != (ORDER_OFFSET)o.offset;
+        return ORDER_OFFSET::O_INVALID != (ORDER_OFFSET)o.offset;
     };
 
 protected:

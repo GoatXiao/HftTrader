@@ -28,7 +28,7 @@ namespace TRADER
     {
         if (cmd.size() == 1 and cmd[0] == "all") 
         {
-            const auto& gConfig = SYSTEM::get_system_config();
+            const auto& gConfig = SYSTEM::get_system_cfg();
             for (const auto& v : gConfig.inst_list) {
                 volatile auto* p = Agent::m_pOspi->get(v.c_str());
                 if (p) { p->on_off = flag; }
@@ -47,7 +47,7 @@ namespace TRADER
     {
         if (cmd.size() == 1 and cmd[0] == "all") 
         {
-            const auto& gConfig = SYSTEM::get_system_config();
+            const auto& gConfig = SYSTEM::get_system_cfg();
             for (const auto& v : gConfig.inst_list) {
                 const auto* p = Agent::m_pOspi->get(v.c_str());
                 if (p) { p->print(); }
@@ -75,21 +75,21 @@ namespace TRADER
     template<char direction>
     int get_outstanding_volume(int inst_id) 
     {
-        const auto* state = Agent::m_Ospi->get(inst_id);
+        const auto* state = Agent::m_pOspi->get(inst_id);
         return state->get_outstanding_volume<direction>();
     };
 
     template<char direction>
     int get_outstanding_volume(int inst_id, double price) 
     {
-        const auto* state = Agent::m_Ospi->get(inst_id);
-        return state->get_outstanding_volume<direction>(price):
+        const auto* state = Agent::m_pOspi->get(inst_id);
+        return state->get_outstanding_volume<direction>(price);
     };
 
     template<char direction, typename Func>
     void handle_outstanding_order(int inst_id, Func func) 
     {
-        const auto* state = Agent::m_Ospi->get(inst_id);
+        const auto* state = Agent::m_pOspi->get(inst_id);
         const auto& map = state->get_outstanding_order<direction>();
         for (const auto& iter : map) 
         { 
@@ -112,7 +112,7 @@ namespace TRADER
         if (Agent::m_pOspi->send_order(order))
         {
             Agent::m_pOspi->send(order);
-            push_to_log<LOGGER_TYPE::SEND_LOG>(order);
+            Agent::push_to_log(LOGGER_TYPE::SEND_LOG, order);
             return order.orderid;
         }
         return 0;
@@ -124,7 +124,7 @@ namespace TRADER
         {
             auto& order = Agent::m_pOspi->get_order(orderid);
             order.status = ORDER_STATUS::O_CANCELING;
-            push_to_log<LOGGER_TYPE::CANCEL_LOG>(order);
+            Agent::push_to_log(LOGGER_TYPE::CANCEL_LOG, order);
             return true;
         }
         return false;
@@ -144,10 +144,10 @@ namespace TRADER
                 auto& order = Agent::m_pOspi->get_order(iter.first);
                 if (ORDER_STATUS::O_QUEUEING == (ORDER_STATUS)order.status)
                 {
-                    if (m_pOspi->cancel_order(order.orderid))
+                    if (Agent::m_pOspi->cancel_order(order.orderid))
                     {
                         order.status = ORDER_STATUS::O_CANCELING;
-                        push_to_log<LOGGER_TYPE::CANCEL_LOG>(order);
+                        Agent::push_to_log(LOGGER_TYPE::CANCEL_LOG, order);
                     }
                 }
             }
@@ -170,7 +170,7 @@ namespace TRADER
             if (Agent::m_pOspi->send_order(order))
             {
                 Agent::m_pOspi->send(order);
-                push_to_log<LOGGER_TYPE::SEND_LOG>(order);
+                Agent::push_to_log(LOGGER_TYPE::SEND_LOG, order);
                 return order.orderid;
             }
         }
@@ -201,7 +201,7 @@ namespace TRADER
                 if (Agent::m_pOspi->send_order(order))
                 {
                     Agent::m_pOspi->send(order);
-                    push_to_log<LOGGER_TYPE::SEND_LOG>(order);
+                    Agent::push_to_log(LOGGER_TYPE::SEND_LOG, order);
                     return order.orderid;
                 }
             }
@@ -226,7 +226,7 @@ namespace TRADER
                 if (Agent::m_pOspi->send_order(order))
                 {
                     Agent::m_pOspi->send(order);
-                    push_to_log<LOGGER_TYPE::SEND_LOG>(order);
+                    Agent::push_to_log(LOGGER_TYPE::SEND_LOG, order);
                     return order.orderid;
                 }
             }
@@ -348,7 +348,7 @@ void Agent::OnCancelRtn(uint32_t orderid, int num)
         // user func
         auto* pUser = (UserStrategyBase*)order.pUser;
         pUser->on_cancel_rtn(&order, num);
-        push_to_log<LOGGER_TYPE::COMPLETE_LOG>(order);
+        Agent::push_to_log(LOGGER_TYPE::COMPLETE_LOG, order);
     }
 
 }
@@ -363,10 +363,10 @@ void Agent::OnTradeRtn(uint32_t orderid, double pr, int v)
     // user func
     auto* pUser = (UserStrategyBase*)order.pUser;
     pUser->on_trade_rtn(&order, pr, v);
-    push_to_log<LOGGER_TYPE::TRADE_LOG>(order, v, pr, fee);
+    Agent::push_to_log(LOGGER_TYPE::TRADE_LOG, order, v, pr, fee);
     
     if (done) {
-        push_to_log<LOGGER_TYPE::COMPLETE_LOG>(order);
+        Agent::push_to_log(LOGGER_TYPE::COMPLETE_LOG, order);
     }
 }
 
@@ -375,7 +375,7 @@ void Agent::OnCancelError(uint32_t orderid, int errid)
     auto& order = Agent::m_pOspi->get_order(orderid);
     Agent::m_pOspi->cancel_error(order);
 
-    push_to_log<LOGGER_TYPE::ERR_LOG>(order, errid);
+    Agent::push_to_log(LOGGER_TYPE::ERR_LOG, order, errid);
 }
 
 void Agent::OnSendError(uint32_t orderid, int errid)
@@ -387,11 +387,10 @@ void Agent::OnSendError(uint32_t orderid, int errid)
     auto* pUser = (UserStrategyBase*)order.pUser;
     pUser->on_send_err_rtn(&order, errid);
 
-    push_to_log<LOGGER_TYPE::ERR_LOG>(order, errid);
+    Agent::push_to_log(LOGGER_TYPE::ERR_LOG, order, errid);
 }
 
-template<LOGGER_TYPE type>
-void Agent::push_to_log(const Order& order, int userdata, double price, double fee)
+void Agent::push_to_log(LOGGER_TYPE type, const Order& order, int userdata, double price, double fee)
 {
     const auto* state = Agent::m_pOspi->get(order.inst_id);
     const auto* p_cfg = state->p_cfg;
@@ -456,7 +455,7 @@ void Agent::push_to_log(const Order& order, int userdata, double price, double f
         data->price = order.price;
         data->direction = order.direction;
         data->offset = order.offset;
-        data->volume = order.volume
+        data->volume = order.volume;
         data->fak = order.fak;
         data->ns = ns;
         m_atol_q->push();

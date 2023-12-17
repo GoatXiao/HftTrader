@@ -90,8 +90,6 @@ enum PRODUTIONLINE_TYPE
 
 namespace fs = std::filesystem;
 
-#define INSTRUMENTLENGTH 8  //合约代码长度
-
 template <typename T> struct HashMap {
     using type = StrHash<INSTRUMENTLENGTH, T*, nullptr, 7>;
 };

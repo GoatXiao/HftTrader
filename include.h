@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <cstdint>
@@ -15,6 +14,12 @@
 #define FMTLOG_NO_CHECK_LEVEL
 #define FMTLOG_QUEUE_SIZE (1024 * 8)
 #include "include/fmtlog/fmtlog.h"
+
+#include "compile.h"
+
+using namespace libconfig;
+
+#define INSTRUMENTLENGTH 8  //合约代码长度
 
 /*
  *  系统配置信息
@@ -106,7 +111,7 @@ struct InstrumentConfig
 /*
  *  行情切片
  */
-struct alignas(INSTRUMENTLENGTH) MdFeed 
+struct alignas(INSTRUMENTLENGTH) MdFeed
 {
     char instrument[INSTRUMENTLENGTH]{ 0 };
     InstrumentConfig* p_cfg{ nullptr };
