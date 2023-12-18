@@ -129,7 +129,7 @@ namespace SYSTEM
     void reload_instrument_config(const char* inst) 
     {
         volatile auto* p_cfg = SYSTEM::find_inst_cfg(inst);
-        if (p) { Tools::reload_instrument_config(p); }
+        if (p_cfg) { Tools::reload_instrument_config(p_cfg); }
     };
 
     void reload_thread_config(int thread_id) 

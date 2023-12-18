@@ -42,7 +42,7 @@ void Core::LAUNCH_SYSTEM()
 
 void Core::init()
 {
-    switch ((PRODUCTIONLINE_TYPE)m_plt)
+    switch ((PRODUTIONLINE_TYPE)m_plt)
     {
     case PLT_LOGGER:
     {

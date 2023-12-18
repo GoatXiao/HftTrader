@@ -35,9 +35,76 @@ static inline std::string to_stamp(uint32_t _time)
     );
 }
 
-static void LOG(FILE* fp, const FEED* feed)
+static void LOG(FILE* fp, LOGGER_TYPE type)
 {
-    switch (feed->iL) 
+    switch (type)
+    {
+    case LOGGER_TYPE::FEED_LOG:
+        fmt::print(fp,
+            "Instrument,ExchTime,Price,Volume,OpenInt,Turnover,"
+            "Bid0,Bid1,Bid2,Bid3,Bid4,Ask0,Ask1,Ask2,Ask3,Ask4,"
+            "BidVol0,BidVol1,BidVol2,BidVol3,BidVol4,"
+            "AskVol0,AskVol1,AskVol2,AskVol3,AskVol4,"
+            "LEVEL,LocalTime\n"
+        );
+        fflush(fp);
+        break;
+    case LOGGER_TYPE::COMPLETE_LOG:
+        fmt::print(fp,
+            "InsertTime,Instrument,OrderID,Direction,Offset,"
+            "Price,Volume,Filled,FAK,Status,NsExec,NsApi,EndTime,"
+            "NumInsert,NumInsertErr,NumCancelGFD,NumCancelFAK,"
+            "NumCancelErr,NumInfo,LocalTime\n"
+        );
+        fflush(fp);
+        break;
+    case LOGGER_TYPE::TRADE_LOG:
+        fmt::print(fp,
+            "InsertTime,Instrument,OrderID,Direction,Offset,"
+            "Price,Volume,Fee,TradeTime,LocalTime\n"
+        );
+        fflush(fp);
+        break;
+    case LOGGER_TYPE::SEND_LOG:
+        fmt::print(fp,
+            "InsertTime,Instrument,OrderID,Direction,"
+            "Offset,Price,Volume,FAK,LocalTime\n"
+            );
+        fflush(fp);
+        break;
+    case LOGGER_TYPE::CANCEL_LOG:
+        fmt::print(fp,
+            "InsertTime,Instrument,OrderID,CancelTime,LocalTime\n"
+        );
+        fflush(fp);
+        break;
+    case LOGGER_TYPE::ERR_LOG:
+        fmt::print(fp,
+            "InsertTime,Instrument,OrderID,ErrorID,ErrTime,LocalTime\n"
+        );
+        fflush(fp);
+        break;
+    default:
+        break;
+    }
+}
+
+static FILE* makefile(const char* path, LOGGER_TYPE type)
+{
+    FILE* fp = nullptr;
+    if (!fs::exists(path)) {
+        fp = fopen(path, "w");
+        LOG(fp, type);
+    }
+    else {
+        fp = fopen(path, "a");
+    }
+    return fp;
+}
+
+static void LOG(FILE* fp, const MdFeed* feed)
+{
+    switch (feed->iL)
     {
     case 2:
     {
@@ -77,6 +144,7 @@ static void LOG(const MdFeed* feed)
     std::string inst = feed->instrument;
     auto iter = map.find(inst);
     if (iter != map.end())
+    {
         LOG(iter.value(), feed);
     }
     else 
@@ -88,16 +156,17 @@ static void LOG(const MdFeed* feed)
     }
 }
 
-static void LOG(const Queue::qATOL::MsgHeader* header) {
+static void LOG(const Queue::qATOL::MsgHeader* header) 
+{
     switch ((LOGGER_TYPE)header->msg_type) {
     case LOGGER_TYPE::COMPLETE_LOG:
     {
         const auto* msg = (const Queue::ORDER_LOG_TYPE*)(header + 1);
         const auto* order = msg->order;
         const char* inst = SYSTEM::get_inst(order->inst_id);
-        int64_t ns_init = Timer::tsc2ns(order->ns_init);
-        int64_t ns_send = Timer::tsc2ns(order->ns_send);
-        int64_t ns_recv = Timer::tsc2ns(order->ns_recv);
+        int64_t ns_init = TIMER::tsc2ns(order->ns_init);
+        int64_t ns_send = TIMER::tsc2ns(order->ns_send);
+        int64_t ns_recv = TIMER::tsc2ns(order->ns_recv);
         fmt::print(order_fp,
             "{},{},{},{},{},{:.3f},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
             to_stamp(order->time),inst,order->orderid,order->direction,order->offset,
@@ -151,8 +220,8 @@ static void LOG(const Queue::qATOL::MsgHeader* header) {
         const char* inst = SYSTEM::get_inst(msg->inst_id);
         fmt::print(err_fp,
             "{},{},{},{},{},{}\n",
-            to_stamp(msg->time),inst,msg->localid
-            msg->errid,tp_stamp(header->userdata),
+            to_stamp(msg->time), inst, msg->localid,
+            msg->errid, to_stamp(header->userdata),
             TIMER::tsc2ns(msg->ns)
         );
         fflush(err_fp);
@@ -162,73 +231,6 @@ static void LOG(const Queue::qATOL::MsgHeader* header) {
     }
     
 };
-
-static void LOG(FILE* fp, LOGGER_TYPE type)
-{
-    switch (type) 
-    {
-    case LOGGER_TYPE::FEED_LOG:
-        fmt::print(fp,
-            "Instrument,ExchTime,Price,Volume,OpenInt,Turnover,"
-            "Bid0,Bid1,Bid2,Bid3,Bid4,Ask0,Ask1,Ask2,Ask3,Ask4,"
-            "BidVol0,BidVol1,BidVol2,BidVol3,BidVol4,"
-            "AskVol0,AskVol1,AskVol2,AskVol3,AskVol4,"
-            "LEVEL,LocalTime\n"
-        );
-        fflush(fp);
-        break;
-    case LOGGER_TYPE::COMPLETE_LOG:
-	    fmt::print(fp,
-            "InsertTime,Instrument,OrderID,Direction,Offset,"
-            "Price,Volume,Filled,FAK,Status,NsExec,NsApi,EndTime,"
-            "NumInsert,NumInsertErr,NumCancelGFD,NumCancelFAK,"
-            "NumCancelErr,NumInfo,LocalTime\n"
-        );
-        fflush(fp);
-        break;
-    case LOGGER_TYPE::TRADE_LOG:
-	    fmt::print(fp,
-            "InsertTime,Instrument,OrderID,Direction,Offset,"
-            "Price,Volume,Fee,TradeTime,LocalTime\n"
-        );
-        fflush(fp);
-        break;
-    case LOGGER_TYPE::SEND_LOG:
-        fmt::print(fp,
-            "InsertTime,Instrument,OrderID,Direction,"
-            "Offset,Price,Volume,FAK,LocalTime\n",
-        );
-        fflush(fp);
-        break;
-    case LOGGER_TYPE::CANCEL_LOG:
-	    fmt::print(fp,
-            "InsertTime,Instrument,OrderID,CancelTime,LocalTime\n"
-        );
-        fflush(fp);
-        break;
-    case LOGGER_TYPE::ERR_LOG:
-	    fmt::print(fp,
-            "InsertTime,Instrument,OrderID,ErrorID,ErrTime,LocalTime\n"
-        );
-        fflush(fp);
-        break;
-    default:
-        break;
-    }
-}
-
-static FILE* makefile(const char* path, LOGGER_TYPE type)
-{
-    FILE* fp = nullptr;
-    if (!fs::exists(path)) {
-        fp = fopen(path, "w");
-        LOG(fp, type);
-    }
-    else {
-        fp = fopen(path, "a");
-    }
-    return fp;
-}
 
 Logger::Logger()
 {
@@ -320,15 +322,15 @@ void Logger::run()
     auto* m_czce_q = QUEUE::get_czce2log();
 
     while (Logger::running) {
-        m_shfe_q->tryPop([&](FEED* feed) {
+        m_shfe_q->tryPop([&](MdFeed* feed) {
             LOG(feed);
         });
 
-        m_dce_q->tryPop([&](FEED* feed) {
+        m_dce_q->tryPop([&](MdFeed* feed) {
             LOG(feed);
         });
 
-        m_czce_q->tryPop([&](FEED* feed) {
+        m_czce_q->tryPop([&](MdFeed* feed) {
             LOG(feed);
         });
 

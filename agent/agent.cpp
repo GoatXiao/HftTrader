@@ -72,18 +72,28 @@ namespace TRADER
         return Agent::m_pOspi->get_sysorderid(orderid);
     };
 
-    template<char direction>
-    int get_outstanding_volume(int inst_id) 
+    int get_buy_outstanding_volume(int inst_id) 
     {
-        const auto* state = Agent::m_pOspi->get(inst_id);
-        return state->get_outstanding_volume<direction>();
+        auto* state = Agent::m_pOspi->get(inst_id);
+        return state->get_outstanding_volume<'b'>();
     };
 
-    template<char direction>
-    int get_outstanding_volume(int inst_id, double price) 
+    int get_sell_outstanding_volume(int inst_id)
     {
-        const auto* state = Agent::m_pOspi->get(inst_id);
-        return state->get_outstanding_volume<direction>(price);
+        auto* state = Agent::m_pOspi->get(inst_id);
+        return state->get_outstanding_volume<'s'>();
+    };
+
+    int get_buy_outstanding_volume(int inst_id, double price) 
+    {
+        auto* state = Agent::m_pOspi->get(inst_id);
+        return state->get_outstanding_volume<'b'>(price);
+    };
+
+    int get_sell_outstanding_volume(int inst_id, double price)
+    {
+        auto* state = Agent::m_pOspi->get(inst_id);
+        return state->get_outstanding_volume<'s'>(price);
     };
 
     template<char direction, typename Func>
@@ -130,13 +140,11 @@ namespace TRADER
         return false;
     };
 
-
-    template<char direction>
-    void cancel_order(int inst_id, double price) 
+    void cancel_buy_order(int inst_id, double price) 
     {
-        const auto* state = Agent::m_pOspi->get(inst_id);
-        if (0 == state->get_outstanding_volume<direction>()) { return; }
-        const auto& orders = state->get_outstanding_order<direction>();
+        auto* state = Agent::m_pOspi->get(inst_id);
+        if (0 == state->get_outstanding_volume<'b'>()) { return; }
+        auto& orders = state->get_outstanding_order<'b'>();
         int pr = std::nearbyint(price * state->inv_ptick);
         for (const auto& iter : orders) {
             if (iter.second == pr or pr == 0)
@@ -154,8 +162,29 @@ namespace TRADER
         }
     };
 
-    template<char direct, bool self_trade_guard>
-    uint32_t send_order(int inst_id, double price, int volume, void* __this) 
+    void cancel_sell_order(int inst_id, double price)
+    {
+        auto* state = Agent::m_pOspi->get(inst_id);
+        if (0 == state->get_outstanding_volume<'s'>()) { return; }
+        auto& orders = state->get_outstanding_order<'s'>();
+        int pr = std::nearbyint(price * state->inv_ptick);
+        for (const auto& iter : orders) {
+            if (iter.second == pr or pr == 0)
+            {
+                auto& order = Agent::m_pOspi->get_order(iter.first);
+                if (ORDER_STATUS::O_QUEUEING == (ORDER_STATUS)order.status)
+                {
+                    if (Agent::m_pOspi->cancel_order(order.orderid))
+                    {
+                        order.status = ORDER_STATUS::O_CANCELING;
+                        Agent::m_pAgent->push_to_log(LOGGER_TYPE::CANCEL_LOG, order);
+                    }
+                }
+            }
+        }
+    };
+
+    uint32_t send_buy_order_selftradeguard(int inst_id, double price, int volume, void* __this)
     {
         auto& order = Agent::m_pOspi->get_next_order();
         
@@ -163,9 +192,75 @@ namespace TRADER
         order.pUser = __this;
         order.price = price;
         order.volume = volume;
-        order.direction = direct;
+        order.direction = 'b';
         
-        if (Agent::m_pOspi->set<direct, self_trade_guard>(order))
+        if (Agent::m_pOspi->set<'b', true>(order))
+        {
+            if (Agent::m_pOspi->send_order(order))
+            {
+                Agent::m_pOspi->send(order);
+                Agent::m_pAgent->push_to_log(LOGGER_TYPE::SEND_LOG, order);
+                return order.orderid;
+            }
+        }
+        return 0;
+    };
+
+    uint32_t send_buy_order_noselftradeguard(int inst_id, double price, int volume, void* __this)
+    {
+        auto& order = Agent::m_pOspi->get_next_order();
+
+        order.inst_id = inst_id;
+        order.pUser = __this;
+        order.price = price;
+        order.volume = volume;
+        order.direction = 'b';
+
+        if (Agent::m_pOspi->set<'b', false>(order))
+        {
+            if (Agent::m_pOspi->send_order(order))
+            {
+                Agent::m_pOspi->send(order);
+                Agent::m_pAgent->push_to_log(LOGGER_TYPE::SEND_LOG, order);
+                return order.orderid;
+            }
+        }
+        return 0;
+    };
+
+    uint32_t send_sell_order_selftradeguard(int inst_id, double price, int volume, void* __this)
+    {
+        auto& order = Agent::m_pOspi->get_next_order();
+
+        order.inst_id = inst_id;
+        order.pUser = __this;
+        order.price = price;
+        order.volume = volume;
+        order.direction = 's';
+
+        if (Agent::m_pOspi->set<'s', true>(order))
+        {
+            if (Agent::m_pOspi->send_order(order))
+            {
+                Agent::m_pOspi->send(order);
+                Agent::m_pAgent->push_to_log(LOGGER_TYPE::SEND_LOG, order);
+                return order.orderid;
+            }
+        }
+        return 0;
+    };
+
+    uint32_t send_sell_order_noselftradeguard(int inst_id, double price, int volume, void* __this)
+    {
+        auto& order = Agent::m_pOspi->get_next_order();
+
+        order.inst_id = inst_id;
+        order.pUser = __this;
+        order.price = price;
+        order.volume = volume;
+        order.direction = 's';
+
+        if (Agent::m_pOspi->set<'s', false>(order))
         {
             if (Agent::m_pOspi->send_order(order))
             {
@@ -183,8 +278,8 @@ namespace TRADER
         const auto* p_cfg = state->p_cfg;
         if (p_cfg->position > 0)//多头净头寸
         {
-            cancel_order<'b'>(inst_id);
-            cancel_order<'s'>(inst_id);
+            cancel_buy_order(inst_id);
+            cancel_sell_order(inst_id);
 
             auto& order = Agent::m_pOspi->get_next_order();
 
@@ -208,8 +303,8 @@ namespace TRADER
         }
         else if (p_cfg->position < 0)//空头净头寸
         {
-            cancel_order<'s'>(inst_id);
-            cancel_order<'b'>(inst_id);
+            cancel_sell_order(inst_id);
+            cancel_buy_order(inst_id);
 
             auto& order = Agent::m_pOspi->get_next_order();
 

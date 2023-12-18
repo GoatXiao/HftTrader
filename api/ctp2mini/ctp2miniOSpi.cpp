@@ -20,7 +20,7 @@ Ctp2MiniOSpi::Ctp2MiniOSpi(bool isqryinit, bool issuballinsts, int qrytype)
 
     if (!m_bIsQryInit)
     {
-        const auto& gConfig = SYSTEM::get_system_config();
+        const auto& gConfig = SYSTEM::get_system_cfg();
         for (int i = 0; i < ORDERPOOL_NUM; i++)
         {
             //报单初始化
@@ -62,7 +62,7 @@ bool Ctp2MiniOSpi::start()
     pUserApi->SubscribePublicTopic(THOST_TERT_QUICK);		// 注册公有流
     pUserApi->SubscribePrivateTopic(THOST_TERT_QUICK);	// 注册私有流
 
-    const auto& gConfig = SYSTEM::get_system_config();
+    const auto& gConfig = SYSTEM::get_system_cfg();
     if (m_bIsQryInit)
     {
         pUserApi->RegisterFront(const_cast<char*>(gConfig.QueryAddr.c_str()));
@@ -115,7 +115,7 @@ bool Ctp2MiniOSpi::send_order(Order& order)
     {
         const char* inst = SYSTEM::get_inst(order.inst_id);
         auto& insertReq = ctp2mini_OrderPool[order.orderid].InsertReq;
-        std::memcpy(insertReq.InstrumentID, inst.data(), INSTRUMENTLENGTH);
+        std::memcpy(insertReq.InstrumentID, inst, INSTRUMENTLENGTH);
         
         switch (order.direction)
         {
@@ -152,7 +152,7 @@ bool Ctp2MiniOSpi::send_order(Order& order)
         }
        
         int iResult = pUserApi->ReqOrderInsert(&insertReq, ++m_nRequestID);
-        order.ns_send = Timer::tsc();
+        order.ns_send = TIMER::tsc();
 
         if (iResult == 0)
         { 
@@ -196,7 +196,7 @@ bool Ctp2MiniOSpi::IsErrorRspInfo(CThostFtdcRspInfoField* pRspInfo)
 
 void Ctp2MiniOSpi::OnFrontConnected()
 {
-    const auto& gConfig = SYSTEM::get_system_config();
+    const auto& gConfig = SYSTEM::get_system_cfg();
     fmt::print("\n====== CTP2MINI Trade Connect success ======\n");
     CThostFtdcReqAuthenticateField req = { 0 };
     memset(&req, 0, sizeof(CThostFtdcReqAuthenticateField));
@@ -220,7 +220,7 @@ void Ctp2MiniOSpi::OnRspAuthenticate(CThostFtdcRspAuthenticateField* pRspAuthent
 {
     if (pRspInfo != NULL && pRspInfo->ErrorID == 0)
     {
-        const auto& gConfig = SYSTEM::get_system_config();
+        const auto& gConfig = SYSTEM::get_system_cfg();
         fmt::print("\n====== CTP2MINI Trade Authenticate success ======\n");
         ///用户登录请求
         CThostFtdcReqUserLoginField req = { 0 };
@@ -237,14 +237,9 @@ void Ctp2MiniOSpi::OnRspAuthenticate(CThostFtdcRspAuthenticateField* pRspAuthent
     }
     else
     {
-        fmt::print("\n====== CTP2MINI Trade Authenticate fail ======\n");
-
-        FILE* fp = nullptr;
-        fp = fopen("./errmsg.txt", "w");
-        fmt::print(fp, "\n====== CTP2MINI Trade Authenticate fail [ERRORID]:{} [ERRORMSG]:{} ======\n"
+        fmt::print("\n====== CTP2MINI Trade Authenticate fail [ERRORID]:{} [ERRORMSG]:{}======\n"
             , pRspInfo->ErrorID
             , pRspInfo->ErrorMsg);
-        fclose(fp);
     }
 }
 
@@ -252,7 +247,7 @@ void Ctp2MiniOSpi::OnRspError(CThostFtdcRspInfoField* pRspInfo, int nRequestID, 
 {
     if (IsErrorRspInfo(pRspInfo)) 
     {
-        fmt::print(fp, "\n====== CTP2MINI OnRspError [ERRORID]:{} [ERRORMSG]:{} ======\n"
+        fmt::print("\n====== CTP2MINI OnRspError [ERRORID]:{} [ERRORMSG]:{} ======\n"
         , pRspInfo->ErrorID
         , pRspInfo->ErrorMsg);
     }
@@ -280,7 +275,7 @@ void Ctp2MiniOSpi::OnRspUserLogin(CThostFtdcRspUserLoginField* pRspUserLogin, CT
         }
         else
         {
-            const auto& gConfig = SYSTEM::get_system_config();
+            const auto& gConfig = SYSTEM::get_system_cfg();
             //查询资金
             CThostFtdcQryTradingAccountField req = { 0 };
             memset(&req, 0, sizeof(CThostFtdcQryTradingAccountField));
@@ -348,7 +343,7 @@ void Ctp2MiniOSpi::OnRspQryTradingAccount(CThostFtdcTradingAccountField* pTradin
     if (bIsLast)
     {
         //持仓查询响应
-        const auto& gConfig = SYSTEM::get_system_config();
+        const auto& gConfig = SYSTEM::get_system_cfg();
         CThostFtdcQryInvestorPositionField req = { 0 };
         memset(&req, 0, sizeof(CThostFtdcQryInvestorPositionField));
         memcpy(req.BrokerID, gConfig.BrokerId.c_str(), gConfig.BrokerId.length());
@@ -468,7 +463,7 @@ void Ctp2MiniOSpi::OnRspQryInstrument(CThostFtdcInstrumentField* pInstrument, CT
         }
         else if (m_bIsQryInit)
         {
-            const auto& gConfig = SYSTEM::get_system_config();
+            const auto& gConfig = SYSTEM::get_system_cfg();
             //查询手续费率
             CThostFtdcQryInstrumentCommissionRateField req = { 0 };
             memset(&req, 0, sizeof(CThostFtdcQryInstrumentCommissionRateField));
@@ -519,7 +514,7 @@ void Ctp2MiniOSpi::OnRspQryInstrumentCommissionRate(CThostFtdcInstrumentCommissi
         //持仓查询响应
         if (m_bIsQryInit)
         {
-            const auto& gConfig = SYSTEM::get_system_config();
+            const auto& gConfig = SYSTEM::get_system_cfg();
             CThostFtdcQryInvestorPositionField req = { 0 };
             memset(&req, 0, sizeof(CThostFtdcQryInvestorPositionField));
             memcpy(req.BrokerID, gConfig.BrokerId.c_str(), gConfig.BrokerId.length());
@@ -548,7 +543,7 @@ void Ctp2MiniOSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField* pIn
                 auto iter = inventory.find(inst);
                 if (iter == inventory.end()) 
                 {
-                    inventory[inst] = { 0, 0, 0, 0 };
+                    memset(inventory[inst], 0, sizeof(inventory[inst]));
                 }
                 switch (pInvestorPosition->PosiDirection)
                 {
@@ -575,13 +570,13 @@ void Ctp2MiniOSpi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField* pIn
     {
         for (const auto& iter : inventory)
         {
-            auto* pInstsConfig = SYSTEM::find_inst_cfg(iter->first.data());
+            auto* pInstsConfig = SYSTEM::find_inst_cfg(iter.first.data());
             if (pInstsConfig)
             {
-                memcpy(pInstsConfig->inventory, iter->second, 16);
+                memcpy(pInstsConfig->inventory, iter.second, 16);
             }
-            fmt::print("[Inventory] {}: ({}+{},{}+{})\n", iter->first.data(), 
-                iter->second[0], iter->second[1],iter->second[2], iter->second[3]
+            fmt::print("[Inventory] {}: ({}+{},{}+{})\n", iter.first.data(), 
+                iter.second[0], iter.second[1],iter.second[2], iter.second[3]
             );
         }
         if (m_bIsQryInit)
@@ -663,7 +658,7 @@ void Ctp2MiniOSpi::OnRtnOrder(CThostFtdcOrderField* pOrder)
             int64_t& sysorderid = ctp2mini_OrderPool[localid].sysorderid;
             if (sysorderid == -1 and sysid > 0)
             {
-                sysorderid = sydid;
+                sysorderid = sysid;
                 m_qcbtoa->blockPush([&](Queue::CBTOA* cbtoa) {
                     cbtoa->reference_id = localid;
                     cbtoa->msg_type = CALLBACK_TYPE::ORDER_CONFIRM;
@@ -753,7 +748,7 @@ void Ctp2MiniOSpi::OnRspOrderInsert(CThostFtdcInputOrderField* pInputOrder, CTho
 }
 
 ///报单操作请求响应
-virtual void OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAction, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+void Ctp2MiniOSpi::OnRspOrderAction(CThostFtdcInputOrderActionField* pInputOrderAction, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
     if (!IsErrorRspInfo(pRspInfo))
     {
@@ -765,7 +760,7 @@ virtual void OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAction
     else
     {
         m_qcbtoa->blockPush([&](Queue::CBTOA* cbtoa) {
-            cbtoa->reference_id = atoi(pInputOrder->OrderRef);
+            cbtoa->reference_id = atoi(pInputOrderAction->OrderRef);
             cbtoa->errid = pRspInfo->ErrorID;
             cbtoa->msg_type = CALLBACK_TYPE::ORDER_CANCEL_ERR;
         });

@@ -7,7 +7,7 @@ public:
     Tools();
     ~Tools();
 
-private:
+public:
     static char m_date[9];
 public:
     static std::atomic<bool> simulate_lock;

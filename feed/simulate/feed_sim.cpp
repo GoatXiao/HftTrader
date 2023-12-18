@@ -184,7 +184,7 @@ static bool cmp(const MdFeed& a, const MdFeed& b)
 
 static void readMDfile()
 {
-    const auto& gConfig = SYSTEM::get_system_config();
+    const auto& gConfig = SYSTEM::get_system_cfg();
     const auto& Insts = gConfig.inst_list;
     m_vmd.clear();
 
@@ -237,7 +237,7 @@ void Feed_SIM::run()
 
         fmt::print("Simulation Length: {}\n", N);
 
-        for (for int i = 0; i < N; ++i)
+        for (int i = 0; i < N; ++i)
         {
             while (Tools::is_lock());
 

@@ -243,11 +243,17 @@ namespace TRADER
     // 根据orderid获取sysorderid
     inline int64_t get_sysorderid(uint32_t orderid);
 
-    // 查询direct方向inst_id的挂单总手数
-    template<char direct> int get_outstanding_volume(int inst_id);
+    // 查询buy方向inst_id的挂单总手数
+    int get_buy_outstanding_volume(int inst_id);
 
-    // 查询direct方向inst_id的挂单价price的挂单总手数
-    template<char direct> int get_outstanding_volume(int inst_id, double price);
+    // 查询sell方向inst_id的挂单总手数
+    int get_sell_outstanding_volume(int inst_id);
+
+    // 查询buy方向inst_id的挂单价price的挂单总手数
+    int get_buy_outstanding_volume(int inst_id, double price);
+
+    // 查询sell方向inst_id的挂单价price的挂单总手数
+    int get_sell_outstanding_volume(int inst_id, double price);
 
     // 传入lambda函数func，处理direct方向inst_id的挂单
     template<char direct, typename Func> void handle_outstanding_order(int inst_id, Func func);
@@ -265,11 +271,17 @@ namespace TRADER
     // 结束交易：撤单+平净头存
     uint32_t close_net_position(int inst_id, void* __this);
 
-    // 撤消direct方向inst_id的挂单价price的挂单（price=0时该方向全部撤销）
-    template<char direct> void cancel_order(int inst_id, double price = 0);
+    // 撤消buy方向inst_id的挂单价price的挂单（price=0时该方向全部撤销）
+    void cancel_buy_order(int inst_id, double price = 0);
+
+    // 撤消sell方向inst_id的挂单价price的挂单（price=0时该方向全部撤销）
+    void cancel_sell_order(int inst_id, double price = 0);
 
     // 默认限价单
     // 增加了自动规避自成交的功能，模板第二个参数开启/关闭
     // 配合配置文件的offset_type_mode字段，自动设置订单offset
-    template<char direct, bool self_trade_guard> uint32_t send_order(int inst_id, double price, int volume, void* __this);
+    uint32_t send_buy_order_selftradeguard(int inst_id, double price, int volume, void* __this);
+    uint32_t send_buy_order_selftradeguard(int inst_id, double price, int volume, void* __this);
+    uint32_t send_sell_order_selftradeguard(int inst_id, double price, int volume, void* __this);
+    uint32_t send_sell_order_selftradeguard(int inst_id, double price, int volume, void* __this);
 }

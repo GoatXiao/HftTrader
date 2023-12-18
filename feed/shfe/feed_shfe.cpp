@@ -1,6 +1,6 @@
 
 #include "feed_shfe.h"
-#include "../../system.system.h"
+#include "../../system/system.h"
 
 static void set_timestamp(uint32_t* time, uint32_t _s) {
     int s = _s % 60;

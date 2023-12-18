@@ -1,11 +1,12 @@
 #include "strategy.h"
 #include "../user.h"
+#include "../system/system.h"
 
 static int64_t process(const MdFeed* in, Queue::qUTOA* out, UserStrategyBase* pUser)
 {
     InstrumentConfig* p_cfg = in->p_cfg;
     int inst_idx = pUser->on_new_md(p_cfg->inst_id);
-    if (inst_idx == -1) { return; }
+    if (inst_idx == -1) { return TIMER::tsc(); }
 
     uint16_t size = pUser->allocate_size(inst_idx);
     if (size > 0) 
@@ -22,7 +23,7 @@ static int64_t process(const MdFeed* in, Queue::qUTOA* out, UserStrategyBase* pU
         output->bidvol = in->bidvol[0];
         output->askvol = in->askvol[0];
         pUser->on_new_event(inst_idx, in, &header->msg_type, output);
-        output->ns_done = Timer::tsc();
+        output->ns_done = TIMER::tsc();
         out->push();
     }
     else 

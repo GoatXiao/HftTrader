@@ -24,7 +24,7 @@ SimulateOSpi::SimulateOSpi()
 {
     m_qcbtoa = QUEUE::get_api2agent();
 
-    const auto& gConfig = SYSTEM::get_system_config();
+    const auto& gConfig = SYSTEM::get_system_cfg();
     int n = gConfig.inst_list.size();
 
     m_History.resize(n);
@@ -32,7 +32,7 @@ SimulateOSpi::SimulateOSpi()
     m_Insert.resize(n);
 
     for (int i = 0; i < n; ++i) {
-        memset(&m_History[i], 0, sizeof(MdFeed);
+        memset(&m_History[i], 0, sizeof(MdFeed));
         m_Cancel[i] = new CancelBuffer;
         m_Insert[i] = new InsertBuffer;
         m_Cancel[i]->clear();
@@ -103,7 +103,7 @@ void SimulateOSpi::handle_order(int inst_id)
     // handle insert
     auto* ibuffer = m_Insert[inst_id];
     for (auto* p : *ibuffer) {
-        m_insertorderbook[p->localid] = p;
+        m_insertorderbook[p->orderid] = p;
         OnOrderInsert(*p);
     }
     ibuffer->clear();
@@ -148,7 +148,7 @@ void SimulateOSpi::handle_order(int inst_id)
             OnOrderTrade(*order, order->price, deal_size); //模拟盘中,成交价=挂单价
             if (order->volume - order->filled == deal_size)   // 订单结束
             {
-                done_id.push_back(order->localid);
+                done_id.push_back(order->orderid);
             }
         }
     } // end for loop
@@ -165,7 +165,7 @@ void SimulateOSpi::OnOrderInsert(const Order& order)
     if (m_qcbtoa)
     {
         m_qcbtoa->blockPush([&](Queue::CBTOA* cbtoa) {
-            cbtoa->reference_id = order.localid;
+            cbtoa->reference_id = order.orderid;
             cbtoa->msg_type = CALLBACK_TYPE::ORDER_CONFIRM;
         });
     }
@@ -177,7 +177,7 @@ void SimulateOSpi::OnOrderCancel(const Order& order)
     if (m_qcbtoa)
     {
         m_qcbtoa->blockPush([&](Queue::CBTOA* cbtoa) {
-            cbtoa->reference_id = order.localid;
+            cbtoa->reference_id = order.orderid;
             cbtoa->volume = order.volume - order.filled;
             cbtoa->msg_type = CALLBACK_TYPE::ORDER_CANCEL;
         });
@@ -189,7 +189,7 @@ void SimulateOSpi::OnOrderTrade(const Order& order, double price, int volume)
     if (m_qcbtoa)
     {
         m_qcbtoa->blockPush([&](Queue::CBTOA* cbtoa) {
-            cbtoa->reference_id = order.localid;
+            cbtoa->reference_id = order.orderid;
             cbtoa->price = price;
             cbtoa->volume = volume;
             cbtoa->msg_type = CALLBACK_TYPE::ORDER_TRADE;
@@ -199,8 +199,8 @@ void SimulateOSpi::OnOrderTrade(const Order& order, double price, int volume)
 
 int SimulateOSpi::handle_deal(
     Order* order, 
-    const FEED* now, 
-    const FEED* prev,
+    const MdFeed* now,
+    const MdFeed* prev,
     double trade_price, 
     int msell, // trades towards bid
     int mbuy // trades towards ask
@@ -223,7 +223,7 @@ int SimulateOSpi::handle_deal(
             deal = size;
             rank = 0;
         }
-        else if (DOUBLE_COMPARE(price, now->ask) != -1) // price >= current ask1
+        else if (DOUBLE_COMPARE(price, now->ask[0]) != -1) // price >= current ask1
         {
             deal = std::min(msell + now->askvol[0], size);
             rank = 0;
@@ -233,7 +233,7 @@ int SimulateOSpi::handle_deal(
             deal = std::min(msell, size);
             rank = 0;
         }
-        else if (DOUBLE_COMPARE(price, now->bid) == 1) // current bid1 < price < current ask1
+        else if (DOUBLE_COMPARE(price, now->bid[0]) == 1) // current bid1 < price < current ask1
         {
             if (order_type == -1) // price < previous bid1
             {
@@ -258,7 +258,7 @@ int SimulateOSpi::handle_deal(
             }
             rank = 0; // inside spread
         }
-        else if (DOUBLE_COMPARE(price, now->bid) == 0) // price == current bid1
+        else if (DOUBLE_COMPARE(price, now->bid[0]) == 0) // price == current bid1
         {
             if (order_type == -1) // price < previous bid1
             {
@@ -332,7 +332,7 @@ int SimulateOSpi::handle_deal(
             deal = size;
             rank = 0;
         }
-        else if (DOUBLE_COMPARE(price, now->bid) != 1) // price <= current bid1
+        else if (DOUBLE_COMPARE(price, now->bid[0]) != 1) // price <= current bid1
         {
             deal = std::min(mbuy + now->bidvol[0], size);
             rank = 0;
@@ -342,7 +342,7 @@ int SimulateOSpi::handle_deal(
             deal = std::min(mbuy, size);
             rank = 0;
         }
-        else if (DOUBLE_COMPARE(price, now->ask) == -1) // current ask1 > price > current bid1
+        else if (DOUBLE_COMPARE(price, now->ask[0]) == -1) // current ask1 > price > current bid1
         {
             if (order_type == 1) // price > previous ask1
             {
@@ -367,7 +367,7 @@ int SimulateOSpi::handle_deal(
             }
             rank = 0; // inside spread
         }
-        else if (DOUBLE_COMPARE(price, now->ask) == 0) // price == current ask1
+        else if (DOUBLE_COMPARE(price, now->ask[0]) == 0) // price == current ask1
         {
             if (order_type == 1) // price > previous ask1
             {
