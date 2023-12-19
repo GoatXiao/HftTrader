@@ -4,7 +4,7 @@
 UserStrategy::UserStrategy(const ThreadConfig* p_cfg) : m_pcfg(p_cfg)
 {
     // number of instruments subscribed for data feed
-    const auto& gConfig = SYSTEM::get_system_config();
+    const auto& gConfig = SYSTEM::get_system_cfg();
     size_t n = gConfig.inst_list.size();
     m_vIdx.reserve(n);
 
@@ -71,7 +71,7 @@ void UserStrategy::on_new_event(int inst_idx, const MdFeed* in, uint16_t* msg_ty
      */
     if (out) { 
         auto* data = static_cast<USER_MSG*>(out);
-        data->inst_id = in->inst_id;
+        data->inst_id = in->p_cfg->inst_id;
         data->signal = signal;
     } 
 
@@ -97,15 +97,15 @@ void UserStrategy::on_execute(uint16_t msg_type, const SIGNAL* in)
      */
 
     // send buy order at price=100
-    uint32_t orderid = TRADER::send_order<'b'>(
-        inst_id, 100.0, 1, 0, (char)ORDER_OFFSET::O_OPEN, (void*)this
+    uint32_t orderid = TRADER::send_order(
+        inst_id, 100.0, 1, 0, 'b', (char)ORDER_OFFSET::O_OPEN, (void*)this
     );
 
     // loop over outstanding sell orders of inst_id
     // cancel sell orders if price=100 and status=queueing
     // accumulate the number of cancel
     int num_cancel = 0;
-    TRADER::handle_outstanding_orders<'s'>(
+    TRADER::handle_outstanding_order<'s'>(
         inst_id, 
         [&](const Order& order){
             if (10000 == std::nearbyint(order.price * 100) and

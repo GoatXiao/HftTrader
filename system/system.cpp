@@ -113,13 +113,13 @@ namespace SYSTEM
         return Tools::get_cfg_member(cfg, path);
     };
 
-    template<typename T, bool str_type=false>
+    template<typename T, bool str_type>
     void get_cfg_item(const Setting& cfg, const char* path, T& item) 
     {
         Tools::get_cfg_item<T, str_type>(cfg, path, item);
     };
 
-    template<typename T, bool str_type=false>
+    template<typename T, bool str_type>
     void get_cfg_array(const Setting& cfg, const char* path, std::vector<T>& vec) 
     {
         Tools::get_cfg_array(cfg, path, vec);
