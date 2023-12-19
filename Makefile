@@ -9,7 +9,7 @@ lib=-lconfig -lconfig++ -lthostmduserapi -lthosttraderapi -lexanic -ldstartradea
 
 all: trader
 
-src=$(wildcard ./*.cpp ./agent/*.cpp ./api/ctp2mini/*.cpp ./api/simulate/*.cpp ./api/v10/*.cpp ./api/xele/*.cpp ./api/yd/*.cpp ./core/*.cpp ./feed/ctp/*.cpp ./feed/czce/*.cpp ./feed/dce/*.cpp ./feed/shfe/*.cpp ./feed/simulate/*.cpp ./logger/*.cpp ./strategy/*.cpp ./system/*.cpp ./tools/*.cpp ./user/*.cpp)
+src=$(wildcard ./*.cpp ./agent/*.cpp ./api/ctp2mini/*.cpp ./api/simulate/*.cpp ./api/v10/*.cpp ./api/xele/*.cpp ./api/yd/*.cpp ./core/*.cpp ./feed/ctp/*.cpp ./feed/czce/*.cpp ./feed/dce/*.cpp ./feed/shfe/*.cpp ./feed/simulate/*.cpp ./logger/*.cpp ./strategy/*.cpp ./system/*.cpp ./tool/*.cpp ./user/*.cpp)
 obj=$(patsubst %.cpp,%.o,$(src))
 
 %.o: %.cpp

@@ -14,7 +14,7 @@
 #define FMTLOG_NO_CHECK_LEVEL
 #define FMTLOG_QUEUE_SIZE (1024 * 8)
 #include "include/fmtlog/fmtlog.h"
-
+#include <functional>
 #include "compile.h"
 
 using namespace libconfig;
@@ -185,15 +185,15 @@ namespace SYSTEM
     void init_system();
     void bind_cpuid(int cpuid, int priority);
 
-    inline SystemConfig& get_system_cfg();
-    inline std::vector<ThreadConfig>& get_thread_cfgs();
-    inline std::vector<InstrumentConfig>& get_inst_cfgs();
-    inline InstrumentConfig* find_inst_cfg(const char*);
-    inline InstrumentConfig& get_inst_cfg(int);
-    inline ThreadConfig& get_thread_cfg(int);
+    SystemConfig& get_system_cfg();
+    std::vector<ThreadConfig>& get_thread_cfgs();
+    std::vector<InstrumentConfig>& get_inst_cfgs();
+    InstrumentConfig* find_inst_cfg(const char*);
+    InstrumentConfig& get_inst_cfg(int);
+    ThreadConfig& get_thread_cfg(int);
 
     // 通过inst_id获取instrumentID
-    inline char* get_inst(int inst_id);
+    char* get_inst(int inst_id);
 
     // libconfig API
     bool read_cfg_file(Config& cfg, const char* file_path);
@@ -202,11 +202,13 @@ namespace SYSTEM
 
     Setting& get_cfg_member(const Setting& cfg, const char* path);
 
-    template<typename T, bool str_type=false>
-    void get_cfg_item(const Setting& cfg, const char* path, T& item);
+    void get_cfg_item_int(const Setting& cfg, const char* path, int& item);
+    void get_cfg_item_double(const Setting& cfg, const char* path, double& item);
+    void get_cfg_item_string(const Setting& cfg, const char* path, std::string& item);
 
-    template<typename T, bool str_type=false>
-    void get_cfg_array(const Setting& cfg, const char* path, std::vector<T>& vec);
+    void get_cfg_array_int(const Setting& cfg, const char* path, std::vector<int>& vec);
+    void get_cfg_array_double(const Setting& cfg, const char* path, std::vector<double>& vec);
+    void get_cfg_array_string(const Setting& cfg, const char* path, std::vector<std::string>& vec);
 
     // Terminal Console
     void reload_instrument_config(const char* inst);
@@ -238,10 +240,10 @@ namespace TRADER
     void print(const std::vector<std::string>&);
 
     // 根据orderid获取订单引用
-    inline Order& get_order(uint32_t orderid);
+    Order& get_order(uint32_t orderid);
 
     // 根据orderid获取sysorderid
-    inline int64_t get_sysorderid(uint32_t orderid);
+    int64_t get_sysorderid(uint32_t orderid);
 
     // 查询buy方向inst_id的挂单总手数
     int get_buy_outstanding_volume(int inst_id);
@@ -256,7 +258,7 @@ namespace TRADER
     int get_sell_outstanding_volume(int inst_id, double price);
 
     // 传入lambda函数func，处理direct方向inst_id的挂单
-    template<char direct, typename Func> void handle_outstanding_order(int inst_id, Func func);
+    template<char direct> void handle_outstanding_order(int inst_id, std::function<void(const Order&)> func);
 
     // 报单：成功返回orderid，失败返回0
     uint32_t send_order(int inst_id, double price, int volume, uint8_t fak, char direction, char offset, void* __this);

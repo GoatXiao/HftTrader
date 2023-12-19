@@ -19,7 +19,7 @@ OfferBase* Agent::m_pOspi = nullptr;
 
 namespace TRADER 
 {
-    inline void set_OrderID(int id) 
+    void set_OrderID(int id) 
     {
         Agent::m_pOspi->set_orderid(id);
     };
@@ -62,12 +62,12 @@ namespace TRADER
         }
     };
 
-    inline Order& get_order(uint32_t orderid) 
+    Order& get_order(uint32_t orderid) 
     {
         return Agent::m_pOspi->get_order(orderid);
     };
 
-    inline int64_t get_sysorderid(uint32_t orderid) 
+    int64_t get_sysorderid(uint32_t orderid) 
     {
         return Agent::m_pOspi->get_sysorderid(orderid);
     };
@@ -96,11 +96,11 @@ namespace TRADER
         return state->get_outstanding_volume<'s'>(price);
     };
 
-    template<char direction, typename Func>
-    void handle_outstanding_order(int inst_id, Func func) 
+    template<char direct>
+    void handle_outstanding_order(int inst_id, std::function<void(const Order&)> func)
     {
-        const auto* state = Agent::m_pOspi->get(inst_id);
-        const auto& map = state->get_outstanding_order<direction>();
+        auto* state = Agent::m_pOspi->get(inst_id);
+        const auto& map = state->get_outstanding_order<direct>();
         for (const auto& iter : map) 
         { 
             func(get_order(iter.first)); 
@@ -328,6 +328,9 @@ namespace TRADER
         }
         return 0;
     };
+
+    template void handle_outstanding_order<'b'>(int inst_id, std::function<void(const Order&)> func);
+    template void handle_outstanding_order<'s'>(int inst_id, std::function<void(const Order&)> func);
 } // namespace
 
 

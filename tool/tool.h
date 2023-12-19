@@ -26,7 +26,7 @@ public:
     static void query_ctp();
 
 public:
-    static void reload_instrument_config(volatile InstrumentConfig*);
+    static void reload_instrument_config(InstrumentConfig*);
     static void reload_thread_config(int);
 
 public:
@@ -36,11 +36,15 @@ public:
 
     static Setting& get_cfg_member(const Setting&, const char*);
 
-    template<typename T, bool str_type=false>
+    template<typename T>
     static void get_cfg_item(const Setting&, const char*, T&);
 
-    template<typename T, bool str_type=false>
+    static void get_cfg_item_string(const Setting&, const char*, std::string&);
+
+    template<typename T>
     static void get_cfg_array(const Setting&, const char*, std::vector<T>&);
+
+    static void get_cfg_array_string(const Setting&, const char*, std::vector<std::string>&);
 
 private:
     static void explodeday(const char* date, int& _y, int& _m, int& _d);

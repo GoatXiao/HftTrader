@@ -178,17 +178,17 @@ Setting& Tools::get_cfg_member(const Setting& cfg, const char* path)
     catch (const SettingNotFoundException& nfex)
     {
         fmt::print("Lookup {} Failed\n", path);
-        return cfg;
+        return const_cast<Setting&>(cfg);
     }
 }
 
-template<typename T, bool str_type>
+template<typename T>
 void Tools::get_cfg_item(const Setting& cfg, const char* path, T& out)
 {
     try
     {
         Setting& v = cfg.lookup(path);
-        out = (str_type) ? (const char*)v : v;
+        out = v;
     }
     catch (const SettingNotFoundException& nfex)
     {
@@ -196,7 +196,20 @@ void Tools::get_cfg_item(const Setting& cfg, const char* path, T& out)
     }
 }
 
-template<typename T, bool str_type>
+void Tools::get_cfg_item_string(const Setting& cfg, const char* path, std::string& out)
+{
+    try
+    {
+        Setting& v = cfg.lookup(path);
+        out = (const char*)v;
+    }
+    catch (const SettingNotFoundException& nfex)
+    {
+        fmt::print("Lookup {} Failed\n", path);
+    }
+}
+
+template<typename T>
 void Tools::get_cfg_array(const Setting& cfg, const char* path, std::vector<T>& out)
 {
     try
@@ -205,7 +218,24 @@ void Tools::get_cfg_array(const Setting& cfg, const char* path, std::vector<T>& 
         int n = get_cfg_length(arr);
         out.reserve(n);
         for (int i = 0; i < n; ++i) {
-            out[i] = (str_type) ? (const char*)arr[i] : arr[i];
+            out[i] = arr[i];
+        }
+    }
+    catch (const SettingNotFoundException& nfex)
+    {
+        fmt::print("Lookup {} Failed\n", path);
+    }
+}
+
+void Tools::get_cfg_array_string(const Setting& cfg, const char* path, std::vector<std::string>& out)
+{
+    try
+    {
+        Setting& arr = cfg.lookup(path);
+        int n = get_cfg_length(arr);
+        out.reserve(n);
+        for (int i = 0; i < n; ++i) {
+            out[i] = (const char*)arr[i];
         }
     }
     catch (const SettingNotFoundException& nfex)
@@ -222,7 +252,7 @@ void Tools::read_system_config()
     }
     const auto& root = get_cfg_root(cfg);
 
-    auto& gConfig = SYSTEM::get_system_config();
+    auto& gConfig = SYSTEM::get_system_cfg();
 
     // user cfg
     const auto& user_cfgs = get_cfg_member(root, "config.user");
@@ -230,23 +260,23 @@ void Tools::read_system_config()
     fmt::print("[system] num_users = {}\n", num_users);
     for (int i = 0; i < num_users; ++i) 
     {
-        get_cfg_item<std::string, true>(user_cfgs[i], "BrokerId", gConfig.BrokerId);
-        get_cfg_item<std::string, true>(user_cfgs[i], "UserId", gConfig.UserId);
-        get_cfg_item<std::string, true>(user_cfgs[i], "PassWord", gConfig.PassWord);
-        get_cfg_item<std::string, true>(user_cfgs[i], "AppId", gConfig.AppId);
-        get_cfg_item<std::string, true>(user_cfgs[i], "AuthCode", gConfig.AuthCode);
+        get_cfg_item_string(user_cfgs[i], "BrokerId", gConfig.BrokerId);
+        get_cfg_item_string(user_cfgs[i], "UserId", gConfig.UserId);
+        get_cfg_item_string(user_cfgs[i], "PassWord", gConfig.PassWord);
+        get_cfg_item_string(user_cfgs[i], "AppId", gConfig.AppId);
+        get_cfg_item_string(user_cfgs[i], "AuthCode", gConfig.AuthCode);
         fmt::print("[system] BrokerId={},UserId={},PassWord={},AppId={},AuthCode={}\n",
             gConfig.BrokerId.data(), gConfig.UserId.data(),
-            gCOnfig.PassWord.data(), gConfig.AppId.data(),
+            gConfig.PassWord.data(), gConfig.AppId.data(),
             gConfig.AuthCode.data()
         );
     }
 
     // market md cfg
     const auto& md_cfg = get_cfg_member(root, "config.md");
-    get_cfg_item<std::string, true>(md_cfg, "Interface", gConfig.MdInterface);
-    get_cfg_item<std::string, true>(md_cfg, "LocalAddr", gConfig.MdLocalAddr);
-    get_cfg_item<std::string, true>(md_cfg, "RemoteAddr", gConfig.MdRemoteAddr);
+    get_cfg_item_string(md_cfg, "Interface", gConfig.MdInterface);
+    get_cfg_item_string(md_cfg, "LocalAddr", gConfig.MdLocalAddr);
+    get_cfg_item_string(md_cfg, "RemoteAddr", gConfig.MdRemoteAddr);
     get_cfg_item<int>(md_cfg, "RemotePort", gConfig.MdRemotePort);
     fmt::print("[system] MdInterface={},MdLocalAddr={},MdRemoteAddr={}:{}\n",
         gConfig.MdInterface.data(), gConfig.MdLocalAddr.data(),
@@ -255,10 +285,10 @@ void Tools::read_system_config()
 
     // trade cfg
     const auto& td_cfg = get_cfg_member(root, "config.trade");
-    get_cfg_item<std::string, true>(td_cfg, "Interface", gConfig.TradeInterface);
-    get_cfg_item<std::string, true>(td_cfg, "LocalAddr", gConfig.TradeLocalAddr);
-    get_cfg_item<std::string, true>(td_cfg, "TradeAddr", gConfig.TradeAddr);
-    get_cfg_item<std::string, true>(td_cfg, "QueryAddr", gConfig.QueryAddr);
+    get_cfg_item_string(td_cfg, "Interface", gConfig.TradeInterface);
+    get_cfg_item_string(td_cfg, "LocalAddr", gConfig.TradeLocalAddr);
+    get_cfg_item_string(td_cfg, "TradeAddr", gConfig.TradeAddr);
+    get_cfg_item_string(td_cfg, "QueryAddr", gConfig.QueryAddr);
     get_cfg_item<int>(td_cfg, "TradePort", gConfig.TradePort);
     get_cfg_item<int>(td_cfg, "QueryPort", gConfig.QueryPort);
     fmt::print("[system] Interface={},LocalAddr={},TradeAddr={}:{},QueryAddr={}:{}\n",
@@ -285,7 +315,7 @@ void Tools::read_system_config()
 
     // strategy cfg
     const auto& strategy_cfg = get_cfg_member(root, "config.strategy");
-    get_cfg_array<std::string, true>(strategy_cfg, "subscription", gConfig.inst_list);
+    get_cfg_array_string(strategy_cfg, "subscription", gConfig.inst_list);
     get_cfg_item<int>(strategy_cfg, "num_threads", gConfig.num_strategy_threads);
     fmt::print("[system] num_strategy_threads={}\n", gConfig.num_strategy_threads);
 
@@ -298,7 +328,7 @@ void Tools::read_system_config()
     {
         ThreadConfig thread_cfg;
 
-        get_cfg_array<std::string, true>(thread_cfgs[i], "inst_list", thread_cfg.inst_list);
+        get_cfg_array_string(thread_cfgs[i], "inst_list", thread_cfg.inst_list);
         get_cfg_array<int>(thread_cfgs[i], "allocate_output_msg", thread_cfg.allocate_output);
         get_cfg_item<int>(thread_cfgs[i], "strategy_id", thread_cfg.strategy_id);
         get_cfg_item<int>(thread_cfgs[i], "bind_cpuid", thread_cfg.cpu_id);
@@ -307,7 +337,7 @@ void Tools::read_system_config()
             i, thread_cfg.cpu_id, thread_cfg.strategy_id
         );
 
-        for (int j = 0; j < thread_cfg.inst_list.size(); ++j) {
+        for (size_t j = 0; j < thread_cfg.inst_list.size(); ++j) {
             fmt::print("{}:{} ", 
                 thread_cfg.inst_list[j].data(), 
                 thread_cfg.allocate_output[j]
@@ -322,7 +352,7 @@ void Tools::read_system_config()
     // instrument cfg
     fmt::print("[system] subscription: ");
     std::map<std::string, int> instid_map; // inst -> inst_id
-    for (int i = 0; i < gConfig.inst_list.size(); ++i) {
+    for (size_t i = 0; i < gConfig.inst_list.size(); ++i) {
         instid_map.emplace(gConfig.inst_list[i], i);
         fmt::print("{} ", gConfig.inst_list[i].data());
     }
@@ -332,12 +362,12 @@ void Tools::read_system_config()
     auto& v_iConfig = SYSTEM::get_inst_cfgs();
     v_iConfig.clear();
 
-    for (int i = 0; i < gConfig.inst_list.size(); ++i)
+    for (size_t i = 0; i < gConfig.inst_list.size(); ++i)
     {
         InstrumentConfig inst_cfg;
         inst_cfg.inst_id = instid_map[gConfig.inst_list[i]];
-        get_cfg_item<std::string, true>(inst_cfgs[i], "inst", inst_cfg.inst);
-        get_cfg_item<std::string, true>(inst_cfgs[i], "param_path", inst_cfg.param_path);
+        get_cfg_item_string(inst_cfgs[i], "inst", inst_cfg.inst);
+        get_cfg_item_string(inst_cfgs[i], "param_path", inst_cfg.param_path);
         get_cfg_item<double>(inst_cfgs[i], "exchange_rebate_rate", inst_cfg.exchange_rebate_rate);
         get_cfg_item<int>(inst_cfgs[i], "offset_type_mode", inst_cfg.offset_type_mode);
         get_cfg_item<int>(inst_cfgs[i], "max_inventory", inst_cfg.max_inventory);
@@ -345,7 +375,7 @@ void Tools::read_system_config()
         get_cfg_item<int>(inst_cfgs[i], "max_volume", inst_cfg.max_volume);
         get_cfg_item<int>(inst_cfgs[i], "max_cancel", inst_cfg.max_cancel);
         
-        get_cfg_array<std::string, true>(inst_cfgs[i], "inst_list", inst_cfg.inst_list);
+        get_cfg_array_string(inst_cfgs[i], "inst_list", inst_cfg.inst_list);
         inst_cfg.num_inst = inst_cfg.inst_list.size();
  
         inst_cfg.final_rebate_rate = inst_cfg.exchange_rebate_rate * gConfig.rebate_rate;
@@ -376,7 +406,7 @@ void Tools::read_system_config()
 }
 
 
-void Tools::reload_instrument_config(volatile InstrumentConfig* inst_cfg)
+void Tools::reload_instrument_config(InstrumentConfig* inst_cfg)
 {
     Config cfg;
     if (!read_cfg_file(cfg, "config/system.cfg")) {
@@ -393,7 +423,7 @@ void Tools::reload_instrument_config(volatile InstrumentConfig* inst_cfg)
     get_cfg_item<int>(inst_cfgs[i], "max_net_pos", inst_cfg->max_net_pos);
     get_cfg_item<int>(inst_cfgs[i], "max_cancel", inst_cfg->max_cancel);
     
-    const auto& gConfig = SYSTEM::get_system_config();
+    const auto& gConfig = SYSTEM::get_system_cfg();
     inst_cfg->final_rebate_rate = inst_cfg->exchange_rebate_rate * gConfig.rebate_rate;
 
     fmt::print("[instrument {}] inst={},final_rebate_rate={:.2},"
@@ -418,8 +448,8 @@ void Tools::reload_thread_config(int thread_id)
     const auto& root = get_cfg_root(cfg);
     const auto& thread_cfgs = get_cfg_member(root, "config.strategy.thread");
     
-    volatile auto& thread_cfg = SYSTEM::get_thread_cfg(thread_id);
-    get_cfg_array<int>(thread_cfgs[thread_id], "allocate_output_msg", thread_cfg.allocate_output);
+    auto& thread_cfg = SYSTEM::get_thread_cfg(thread_id);
+    Tools::get_cfg_array<int>(thread_cfgs[thread_id], "allocate_output_msg", thread_cfg.allocate_output);
 
     fmt::print("[thread {}] bind_cpuid={},strategy_id={},inst:alloc=[ ", 
         thread_id, thread_cfg.cpu_id, thread_cfg.strategy_id
@@ -462,8 +492,9 @@ void Tools::read_order_log()
     fp.open(path.data(), std::ios::in);
 
     std::map<std::string, int[10]> m_map;
-    for (const auto& v : CONFIG::v_iConfig) {
-        m_map[v.inst] = {v.inst_id,0,0,0,0,0,0,0,0,0};
+    for (const auto& v : SYSTEM::get_inst_cfgs()) {
+        memset(m_map[v.inst], 0, sizeof(m_map[v.inst]));
+        m_map[v.inst][0] = v.inst_id;
     }
 
     std::string line;
@@ -492,7 +523,7 @@ void Tools::read_order_log()
         else 
         {
             is_first = false;
-            for (int i = 0; i < items.size(); ++i) {
+            for (size_t i = 0; i < items.size(); ++i) {
                 const auto& name = items[i];
                 if (name == "NumInsert") {
                     idx_map.emplace(name, i);

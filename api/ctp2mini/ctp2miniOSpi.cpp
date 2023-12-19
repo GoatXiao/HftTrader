@@ -367,7 +367,7 @@ void Ctp2MiniOSpi::OnRspQryInstrument(CThostFtdcInstrumentField* pInstrument, CT
             //对于期货或者期权流水线订阅设置列表中的合约
             switch (m_qryType)
             {
-            case QRY_INSTRUMENT_TYPE::FURURE_ONLY:
+            case QRY_INSTRUMENT_TYPE::FUTURE_ONLY:
             {
                 if ('1' == pInstrument->ProductClass)
                 {

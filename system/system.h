@@ -518,18 +518,18 @@ struct Queue {
 namespace QUEUE
 {
     void init();
-    inline Queue::qFTOL* get_shfe2log();
-    inline Queue::qFTOL* get_dce2log();
-    inline Queue::qFTOL* get_czce2log();
+    Queue::qFTOL* get_shfe2log();
+    Queue::qFTOL* get_dce2log();
+    Queue::qFTOL* get_czce2log();
     
-    inline Queue::qFTOU* get_shfe2user();
-    inline Queue::qFTOU* get_dce2user();
-    inline Queue::qFTOU* get_czce2user();
+    Queue::qFTOU* get_shfe2user();
+    Queue::qFTOU* get_dce2user();
+    Queue::qFTOU* get_czce2user();
 
-    inline std::vector<Queue::qUTOA*> get_user2agent();
-    inline Queue::qUTOA* get_user2agent(int);
-    inline Queue::qCBTOA* get_api2agent();
-    inline Queue::qATOL* get_agent2log();
+    std::vector<Queue::qUTOA*> get_user2agent();
+    Queue::qUTOA* get_user2agent(int);
+    Queue::qCBTOA* get_api2agent();
+    Queue::qATOL* get_agent2log();
 }
 
 /*
@@ -537,7 +537,7 @@ namespace QUEUE
  */
 namespace FEED
 {
-    inline uint32_t get_timestamp(const MdFeed*);
+    uint32_t get_timestamp(const MdFeed*);
     void set(const MdFeed*);
     MdFeed* get(int);
 }
