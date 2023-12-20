@@ -584,3 +584,10 @@ void Tools::query_ctp()
     spi.start();
     spi.stop();
 }
+
+
+
+template void Tools::get_cfg_item<int>(const Setting& cfg, const char* path, int& out);
+template void Tools::get_cfg_item<double>(const Setting& cfg, const char* path, double& out);
+template void Tools::get_cfg_array<int>(const Setting& cfg, const char* path, std::vector<int>& out);
+template void Tools::get_cfg_array<double>(const Setting& cfg, const char* path, std::vector<double>& out);
