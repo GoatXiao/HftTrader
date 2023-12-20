@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
             vInsts.clear();
             std::cin >> cmd;
             Tools::stringsplit(cmd, ';', vInsts);
-            SYSTEM::print(vInsts);
+            TRADER::print(vInsts);
         }
         else if (cmd == "off")
         {
@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
             vInsts.clear();
             std::cin >> cmd;
             Tools::stringsplit(cmd, ';', vInsts);
-            SYSTEM::on_off(vInsts, false);
+            TRADER::on_off(vInsts, false);
         }
         else if (cmd == "on")
         {
@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
             vInsts.clear();
             std::cin >> cmd;
             Tools::stringsplit(cmd, ';', vInsts);
-            SYSTEM::on_off(vInsts, true);
+            TRADER::on_off(vInsts, true);
         }
         else if (cmd == "reload")
         {
@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
             if (cmd == "inst") {
                 fmt::print("[reload instrument cfg] Enter instrument:\n");
                 std::cin >> cmd;
-                SYSTEM::reload_insturment_config(cmd.data());
+                SYSTEM::reload_instrument_config(cmd.data());
             }
             else if (cmd == "thread") {
                 fmt::print("[reload thread cfg] Enter thread_id:\n");

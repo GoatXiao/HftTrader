@@ -5,12 +5,12 @@
 int64_t XeleOSpi::LastSendTimeNs = 0;
 uint32_t XeleOSpi::LocalID = 0;
 
-XeleOSpi::XeleOSpi(Queue::qCBTOA* cbtoa)
+XeleOSpi::XeleOSpi()
 {
-    m_qcbtoa = cbtoa;
+    m_qcbtoa = QUEUE::get_api2agent();
     for (uint32_t i = 0; i < ORDERPOOL_NUM; i++) 
     {
-        auto& order = Orders[i]; order.order.localid = i;
+        auto& order = Orders[i]; order.order.orderid = i;
         memset(&order.InputOrder, 0, sizeof(order.InputOrder));
         memset(&order.OrderAction, 0, sizeof(order.OrderAction));
         order.InputOrder.MessageId = 0x65;
@@ -37,7 +37,7 @@ void XeleOSpi::sendData(const uint8_t* data, size_t len)
 {
     if (sender.write(data, len)) 
     {
-        LastSendTimeNs = Timer::tsc();
+        LastSendTimeNs = TIMER::tsc();
     }
     else {
         fmt::print("EfviUdpSender send Error: {}\n", sender.getLastError());
@@ -65,7 +65,8 @@ bool XeleOSpi::start()
     //if (!sender.init("enp101s0f1", "192.168.41.137", LOCAL_PORT, addr, std::atoi(port))) {//TODO£ºÅäÖÃÎÄ¼þ
     //    logeo("EfviUdpSender init Error: {}", sender.getLastError());
     //}
-    if (!sender.init(CONFIG::gConfig.TradeInterface.c_str(), CONFIG::gConfig.TradeLocalAddr.c_str(), LOCAL_PORT, CONFIG::gConfig.TradeAddr.c_str(), CONFIG::gConfig.TradePort))
+    const auto& gConfig = SYSTEM::get_system_cfg();
+    if (!sender.init(gConfig.TradeInterface.c_str(), gConfig.TradeLocalAddr.c_str(), LOCAL_PORT, gConfig.TradeAddr.c_str(), gConfig.TradePort))
     {
         fmt::print("EfviUdpSender init Error: {}\n", sender.getLastError());
     }
@@ -147,9 +148,9 @@ bool XeleOSpi::send_order(Order& order)
         }
         break;
     }
-    order.t1 = Timer::tsc();
+    order.t1 = TIMER::tsc();
     sendData((uint8_t*)&input, sizeof(input));
-    order.t2 = Timer::tsc();
+    order.t2 = TIMER::tsc();
     //order.inittime = state->recvtime;
     state->num_insert++;
 
@@ -189,7 +190,8 @@ void XeleOSpi::onStart(int errorCode, bool isFirstTime)
     {
         if (isFirstTime) {}
         //mApi->enableAutoCombinePosition(true);
-        mApi->login(CONFIG::gConfig.UserId.c_str(), CONFIG::gConfig.PassWord.c_str(), CONFIG::gConfig.AppId.c_str(), CONFIG::gConfig.AuthCode.c_str());
+        const auto& gConfig = SYSTEM::get_system_cfg();
+        mApi->login(gConfig.UserId.c_str(), gConfig.PassWord.c_str(), gConfig.AppId.c_str(), gConfig.AuthCode.c_str());
     }
     else 
     {

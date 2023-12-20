@@ -65,7 +65,7 @@ public:
     void onEvent(const XTFEvent& event) {};
 
 public:
-    XeleOSpi(Queue::qCBTOA* cbtoa);
+    XeleOSpi();
 
     ~XeleOSpi();
 

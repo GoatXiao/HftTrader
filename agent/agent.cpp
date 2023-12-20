@@ -1,9 +1,9 @@
 
 #include "../api/ctp2mini/ctp2miniOSpi.h"
 #include "../api/simulate/simulateOSpi.h"
-//#include "../../api/xele/xeleOSpi.h"
-//#include "../../api/v10/v10OSpi.h"
-//#include "../../api/yd/ydOSpi.h"
+#include "../api/xele/xeleOSpi.h"
+#include "../api/v10/v10OSpi.h"
+#include "../api/yd/ydOSpi.h"
 
 #include "../user.h"
 #include "agent.h"
@@ -373,11 +373,11 @@ void Agent::init()
 #endif
 
 #ifdef __OFFER_YD
-        m_pOspi = new YDOSpi(m_cbtoa_q, &m_mState);
+        m_pOspi = new YDOSpi();
 #endif
 
 #ifdef __OFFER_XELE
-        m_pOspi = new XeleOSpi(m_cbtoa_q, &m_mState);
+        m_pOspi = new XeleOSpi();
 #endif
 
 #ifdef __OFFER_V10

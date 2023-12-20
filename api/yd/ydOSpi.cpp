@@ -6,7 +6,7 @@ YDOSpi::YDOSpi()
 {
     m_qcbtoa = QUEUE::get_api2agent();
 
-    const auto& gConfig = SYSTEM::get_system_config();
+    const auto& gConfig = SYSTEM::get_system_cfg();
     int n = gConfig.inst_list.size();
     v_Instruments.reserve(n);
     for (int i = 0; i < n; ++i)
@@ -32,7 +32,7 @@ bool YDOSpi::start()
         fmt::print("YD API Version {}\n", mApi->getVersion());
     }
     
-    const auto& gConfig = SYSTEM::get_system_config();
+    const auto& gConfig = SYSTEM::get_system_cfg();
     if (!sender.init(gConfig.TradeInterface.c_str(), gConfig.TradeLocalAddr.c_str(), 
         LOCAL_PORT, gConfig.TradeAddr.c_str(), gConfig.TradePort))
     {
@@ -118,7 +118,7 @@ void YDOSpi::notifyReadyForLogin(bool hasLoginFailed)
     }
     else 
     {
-        const auto& gConfig = SYSTEM::get_system_config();
+        const auto& gConfig = SYSTEM::get_system_cfg();
         mApi->login(gConfig.UserId.c_str(), gConfig.PassWord.c_str(), 
             gConfig.AppId.c_str(), gConfig.AuthCode.c_str()
         );
@@ -180,7 +180,7 @@ void YDOSpi::notifyFinishInit(void)
             auto* data = iter.value();
             data->num[idx] = pp->PrePosition;
         }
-        else if (n > 0) 
+        else if (pp->PrePosition > 0)
         {
             auto* data = new yd_inst;
             memset(data, 0, sizeof(yd_inst));
@@ -357,9 +357,9 @@ void YDOSpi::notifyFailedCancelOrder(const YDFailedCancelOrder* pFailedOrder, co
 {
 	if (m_bIsInitCompleted) {
         m_qcbtoa->blockPush([&](Queue::CBTOA* cbtoa) {
-            cbtoa->reference_id = pOrder->OrderRef;
+            cbtoa->reference_id = pFailedOrder->OrderRef;
             cbtoa->errid = pFailedOrder->ErrorNo;
-            cbtoa->msg_type = CBTOA_MSG_TYPE::ORDER_CANCEL_ERR;
+            cbtoa->msg_type = CALLBACK_TYPE::ORDER_CANCEL_ERR;
         });
     }
 }
