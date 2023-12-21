@@ -24,8 +24,8 @@
 //选择报盘连接
 //#define __OFFER_CTP2MINI
 //#define __OFFER_V10
-#define __OFFER_XELE
-//#define __OFFER_YD
+//#define __OFFER_XELE
+#define __OFFER_YD
 //END 选择报盘连接
 
 //盘后模拟 宏

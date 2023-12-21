@@ -90,9 +90,8 @@ Order& XeleOSpi::get_order(uint32_t i)
 
 bool XeleOSpi::send_order(Order& order)
 {
-    State* state = order.state;
-    const auto& instrument = state->instrument;
-    auto& input = Orders[order.localid].InputOrder;
+    const auto& instrument = SYSTEM::get_inst(order.inst_id);
+    auto& input = Orders[order.orderid].InputOrder;
     const auto* inst = Instruments.fastFind(instrument);
     memcpy(input.InstrumentID, instrument, strlen(instrument));
     input.InstrumentIndex = inst->index;
@@ -148,11 +147,8 @@ bool XeleOSpi::send_order(Order& order)
         }
         break;
     }
-    order.t1 = TIMER::tsc();
     sendData((uint8_t*)&input, sizeof(input));
-    order.t2 = TIMER::tsc();
-    //order.inittime = state->recvtime;
-    state->num_insert++;
+    order.ns_send = TIMER::tsc();
 
     return true;
 }
@@ -163,8 +159,7 @@ bool XeleOSpi::cancel_order(const uint32_t& id)
     auto& action = data.OrderAction;
     if (action.OrderSysNo != -1) 
     {
-        State* state = data.order.state;
-        const auto& instrument = state->instrument;
+        const auto& instrument = SYSTEM::get_inst(data.order.inst_id);
         const auto* inst = Instruments.fastFind(instrument);
         action.ClientIndex = inst->clientIndex;
         action.Token = inst->clientToken;
@@ -173,7 +168,6 @@ bool XeleOSpi::cancel_order(const uint32_t& id)
         sendData((uint8_t*)&action,
             sizeof(action)
         );
-        state->num_cancel++;
     }
 
     return true;
@@ -223,7 +217,6 @@ void XeleOSpi::onLoadFinished(const XTFAccount* account)
         const auto* instrument = mApi->getInstrument(i);
         const auto* pExch = instrument->getExchange();
         const char* inst = instrument->instrumentID;
-        //if (strlen(inst) < 8) {
         auto lp = instrument->getLongPosition();
         auto sp = instrument->getShortPosition();
         int nby = lp->getYesterdayPosition();
@@ -236,9 +229,6 @@ void XeleOSpi::onLoadFinished(const XTFAccount* account)
             state->set_inventory(inventory);
             INSTRUMENT* ptr = new INSTRUMENT;
             memset(ptr, 0, sizeof(INSTRUMENT));
-            //memcpy(ptr->instrument, instrument->instrumentID, 
-            //    sizeof(ptr->instrument)
-            //);
             ptr->index = instrument->instrumentIndex;
             ptr->clientIndex = pExch->clientIndex;
             ptr->clientToken = pExch->clientToken;
@@ -249,7 +239,6 @@ void XeleOSpi::onLoadFinished(const XTFAccount* account)
                 inst, nb, nby, ns, nsy
             );
         }
-        //}
     }
     Instruments.doneModify();
 
