@@ -3,7 +3,7 @@
 
 int main(int argc, char* argv[])
 {
-    char date[9] = { 0 };
+    char date[DATE_TIME_LEN] = { 0 };
 
     int nProcs = get_nprocs();
     fmt::print("[Cores]: {}\n", nProcs);

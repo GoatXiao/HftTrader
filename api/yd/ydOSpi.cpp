@@ -74,6 +74,8 @@ bool YDOSpi::send_order(Order& order)
     case ORDER_OFFSET::O_CLOSE:
         input.offset = 1;
         break;
+    default:
+        break;
     }
     input.volume = order.volume;
     input.price = order.price;

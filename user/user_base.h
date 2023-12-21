@@ -10,6 +10,8 @@
 class UserStrategyBase
 {
 public:
+    virtual ~UserStrategyBase(){}
+public:
     struct alignas(8) SIGNAL
     {
         UserStrategyBase* p_user;

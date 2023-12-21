@@ -8,7 +8,7 @@ public:
     ~Tools();
 
 public:
-    static char m_date[9];
+    static char m_date[DATE_TIME_LEN];
 public:
     static std::atomic<bool> simulate_lock;
     static void unlock_sim();

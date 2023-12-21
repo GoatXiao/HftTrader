@@ -23,8 +23,7 @@ UserStrategy::UserStrategy(const ThreadConfig* p_cfg) : m_pcfg(p_cfg)
 
                 // initialize local buffer
                 auto& buffer = m_vBuffer[j];
-                memset(&buffer, 0, sizeof(USER_BUFFER));
-
+                memset((void*)(&buffer), 0, sizeof(USER_BUFFER));
                 break;
             }
         }
@@ -64,7 +63,7 @@ void UserStrategy::on_new_event(int inst_idx, const MdFeed* in, uint16_t* msg_ty
      *  1. Not all insts need computing signal (runtime turn-off or otherwise configured)
      *  2. Not all insts compute the same factors or signal
      */
-    int signal = (in->bid > buffer.bid) ? 1 : 0;
+    int signal = (in->bid[0] > buffer.bid[0]) ? 1 : 0;
 
     /*
      *  Make output message if not nullptr
@@ -80,7 +79,7 @@ void UserStrategy::on_new_event(int inst_idx, const MdFeed* in, uint16_t* msg_ty
      */
 
     // locally buffer whatever desired (those cannot be delayed)
-    memcpy(&buffer, in, sizeof(MdFeed));
+    memcpy((void*)(&buffer), (void*)in, sizeof(MdFeed));
 
     // append a delayed task (those can be delayed)
     delayed_queue.emplace(&buffer);

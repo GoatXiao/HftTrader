@@ -94,4 +94,5 @@ template <typename T> struct HashMap {
     using type = StrHash<INSTRUMENTLENGTH, T*, nullptr, 7>;
 };
 
+#define DATE_TIME_LEN 128
 #endif //__DEFINE_H__

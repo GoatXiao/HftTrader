@@ -455,7 +455,7 @@ void Agent::OnTradeRtn(uint32_t orderid, double pr, int v)
 {
     auto& order = Agent::m_pOspi->get_order(orderid);
 
-    double fee;
+    double fee = 0;
     bool done = Agent::m_pOspi->trade(order, pr, v, fee);
 
     // user func

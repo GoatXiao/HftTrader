@@ -2,7 +2,7 @@
 #include "../api/ctp2mini/ctp2miniOSpi.h"
 #include "tool.h"
 
-char Tools::m_date[9] = { 0 };
+char Tools::m_date[DATE_TIME_LEN] = { 0 };
 std::atomic<bool> Tools::simulate_lock = { true };
 
 Tools::Tools()
@@ -15,17 +15,17 @@ Tools::~Tools()
 
 void Tools::setdate(char* _date)
 {
-    memcpy(m_date, _date, 9);
+    memcpy(m_date, _date, DATE_TIME_LEN);
 }
 
 void Tools::getdate_sim(char* _date)
 {
     if (8 != strlen(m_date)) 
     {
-        memcpy(m_date, 0, 9);
+        memset(m_date, 0, DATE_TIME_LEN);
         getdate(m_date);
     }
-    memcpy(_date, m_date, 9);
+    memcpy(_date, m_date, DATE_TIME_LEN);
 }
 
 void Tools::unlock_sim() {
@@ -50,18 +50,18 @@ void Tools::getdate(char* _date)
     m = 1 + ltm->tm_mon;
     d = ltm->tm_mday;
 
-    char t[9] = { 0 };
-    snprintf(t,9, "%02d:%02d:%02d", ltm->tm_hour, ltm->tm_min, ltm->tm_sec);
+    char t[DATE_TIME_LEN] = { 0 };
+    snprintf(t, DATE_TIME_LEN, "%02d:%02d:%02d", ltm->tm_hour, ltm->tm_min, ltm->tm_sec);
     if (strncmp(t, "08:00:00", sizeof(t)) >= 0 && strncmp(t, "16:00:00", sizeof(t)) <= 0)
     {
-        snprintf(_date,9, "%04d%02d%02d", y, m, d);
+        snprintf(_date, DATE_TIME_LEN, "%04d%02d%02d", y, m, d);
     }
     else
     {
         if (ltm->tm_wday == 5)////周五 跳过3天
         {
-            char curdate[9] = { 0 };
-            snprintf(curdate,9, "%04d%02d%02d", y, m, d);
+            char curdate[DATE_TIME_LEN] = { 0 };
+            snprintf(curdate, DATE_TIME_LEN, "%04d%02d%02d", y, m, d);
             for (int i = 0; i < 3; i++)
             {
                 int _y = 0, _m = 0, _d = 0;
@@ -133,7 +133,7 @@ void Tools::getnextday(char* date, const int& _y, const int& _m, const int& _d)
     {
         d++;
     }
-    sprintf(date, "%02d%02d%02d", y, m, d);
+    snprintf(date, DATE_TIME_LEN, "%04d%02d%02d", y, m, d);
 }
 
 

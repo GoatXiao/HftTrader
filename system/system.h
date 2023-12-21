@@ -438,6 +438,7 @@ struct alignas(8) InstrumentState
             }
             break;
         }
+        return ORDER_OFFSET::O_INVALID;
     };
 };
 

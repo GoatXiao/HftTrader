@@ -4,6 +4,8 @@
 class ModuleBase
 {
 public:
+	virtual ~ModuleBase() {}
+public:
 	virtual void start() = 0; 
 	virtual void close() = 0;
 };
