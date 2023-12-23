@@ -37,6 +37,10 @@ public:
   // Str is not required to align with AlignSize, in order to provide flexibility as a pure char array wrapper
   // but aligning Str could speed up comparison operations
   static const int AlignSize = SIZE >= 7 ? 8 : 4;
+  static __m128i ascii0;
+  static __m128i mul_1_10;
+  static __m128i mul_1_100;
+  static __m128i mul_1_10000;
   char s[SIZE];
 
   Str() {}
@@ -232,12 +236,9 @@ public:
   // covert 8 digits into int
   // https://arxiv.org/pdf/1902.08318.pdf, Fig.7
   static uint32_t simdtoi(const char* p) {
-    __m128i ascii0 = _mm_set1_epi8('0');
-    __m128i mul_1_10 = _mm_setr_epi8(10, 1, 10, 1, 10, 1, 10, 1, 10, 1, 10, 1, 10, 1, 10, 1);
-    __m128i mul_1_100 = _mm_setr_epi16(100, 1, 100, 1, 100, 1, 100, 1);
-    __m128i mul_1_10000 = _mm_setr_epi16(10000, 1, 10000, 1, 10000, 1, 10000, 1);
+    __m128i p_temp = _mm_setr_epi16(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
     // we should've used _mm_loadu_si64 here, but seems _mm_loadu_si128 is faster
-    __m128i in = _mm_sub_epi8(_mm_loadu_si128((__m128i*)p), ascii0);
+    __m128i in = _mm_sub_epi8(_mm_loadu_si128(&p_temp), ascii0);
     __m128i t1 = _mm_maddubs_epi16(in, mul_1_10);
     __m128i t2 = _mm_madd_epi16(t1, mul_1_100);
     __m128i t3 = _mm_packus_epi32(t2, t2);
@@ -247,11 +248,8 @@ public:
 
   // covert 16 digits into int64
   static uint64_t simdtoi64(const char* p) {
-    __m128i ascii0 = _mm_set1_epi8('0');
-    __m128i mul_1_10 = _mm_setr_epi8(10, 1, 10, 1, 10, 1, 10, 1, 10, 1, 10, 1, 10, 1, 10, 1);
-    __m128i mul_1_100 = _mm_setr_epi16(100, 1, 100, 1, 100, 1, 100, 1);
-    __m128i mul_1_10000 = _mm_setr_epi16(10000, 1, 10000, 1, 10000, 1, 10000, 1);
-    __m128i in = _mm_sub_epi8(_mm_loadu_si128((__m128i*)p), ascii0);
+    __m128i p_temp = _mm_setr_epi16(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
+    __m128i in = _mm_sub_epi8(_mm_loadu_si128(&p_temp), ascii0);
     __m128i t1 = _mm_maddubs_epi16(in, mul_1_10);
     __m128i t2 = _mm_madd_epi16(t1, mul_1_100);
     __m128i t3 = _mm_packus_epi32(t2, t2);
@@ -292,6 +290,18 @@ public:
                                              "80818283848586878889"
                                              "90919293949596979899";
 };
+
+template<size_t SIZE>
+__m128i Str<SIZE>::ascii0 = _mm_set1_epi8('0');
+
+template<size_t SIZE>
+__m128i Str<SIZE>::mul_1_10 = _mm_setr_epi8(10, 1, 10, 1, 10, 1, 10, 1, 10, 1, 10, 1, 10, 1, 10, 1);
+
+template<size_t SIZE>
+__m128i Str<SIZE>::mul_1_100 = _mm_setr_epi16(100, 1, 100, 1, 100, 1, 100, 1);
+
+template<size_t SIZE>
+__m128i Str<SIZE>::mul_1_10000 = _mm_setr_epi16(10000, 1, 10000, 1, 10000, 1, 10000, 1);
 
 template<size_t SIZE>
 std::ostream& operator<<(std::ostream& os, const Str<SIZE>& str) {

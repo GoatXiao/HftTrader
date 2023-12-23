@@ -216,7 +216,7 @@ void YDOSpi::notifyCaughtUp(void)
 
     for (int i = 0; i < ORDERPOOL_NUM; ++i) {
         auto& order = ydOrders[i];
-        memset(&order, 0, sizeof(yd_order));
+        memset((void*)(&order), 0, sizeof(yd_order));
         order.InputOrder.speculate = 1;
         order.InputOrder.localid = i;
 

@@ -1,4 +1,4 @@
-CXX_FLAGS=-std=c++17 -Wall -g -march=native -O3 -m64 -gdwarf-2 -gstrict-dwarf
+CXX_FLAGS=-std=c++17 -Wall -O3 -ffast-math -march=native -m64 -DNDEBUG
 
 CXX=g++
 
@@ -9,7 +9,7 @@ lib=-lconfig -lconfig++ -lthostmduserapi -lthosttraderapi -lexanic -ldstartradea
 
 all: trader
 
-src=$(wildcard ./*.cpp ./agent/*.cpp ./api/ctp2mini/*.cpp ./api/simulate/*.cpp ./api/v10/*.cpp ./api/xele/*.cpp ./api/yd/*.cpp ./core/*.cpp ./feed/ctp/*.cpp ./feed/czce/*.cpp ./feed/dce/*.cpp ./feed/shfe/*.cpp ./feed/simulate/*.cpp ./logger/*.cpp ./strategy/*.cpp ./system/*.cpp ./tool/*.cpp ./user/*.cpp)
+src=$(wildcard ./*.cpp ./api/ctp2mini/*.cpp ./api/simulate/*.cpp ./api/v10/*.cpp ./api/xele/*.cpp ./api/yd/*.cpp ./agent/*.cpp ./core/*.cpp ./feed/ctp/*.cpp ./feed/czce/*.cpp ./feed/dce/*.cpp ./feed/shfe/*.cpp ./feed/simulate/*.cpp ./logger/*.cpp ./strategy/*.cpp ./system/*.cpp ./tool/*.cpp ./user/*.cpp)
 obj=$(patsubst %.cpp,%.o,$(src))
 
 %.o: %.cpp

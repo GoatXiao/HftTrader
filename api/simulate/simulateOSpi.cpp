@@ -32,7 +32,7 @@ SimulateOSpi::SimulateOSpi()
     m_Insert.resize(n);
 
     for (int i = 0; i < n; ++i) {
-        memset(&m_History[i], 0, sizeof(MdFeed));
+        memset((void*)(&m_History[i]), 0, sizeof(MdFeed));
         m_Cancel[i] = new CancelBuffer;
         m_Insert[i] = new InsertBuffer;
         m_Cancel[i]->clear();

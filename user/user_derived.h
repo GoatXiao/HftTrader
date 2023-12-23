@@ -39,7 +39,7 @@ public:
     uint16_t allocate_size(int);
     void on_new_event(int, const MdFeed*, uint16_t*, SIGNAL*);
     void on_execute(uint16_t, const SIGNAL*);
-
+    
     /* Optional */
     void on_send_err_rtn(Order*, int);
     void on_cancel_rtn(Order*, int);
