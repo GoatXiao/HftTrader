@@ -219,15 +219,15 @@ void Feed_SIM::run()
 {
 #ifdef __SHFE
     SYSTEM::bind_cpuid(CPUID::FEED_SHFE_CPUID, 0);
-    auto* q = QUEUE::get_shfe2log();
+    auto* q = QUEUE::get_shfe2user();
 #endif
 #ifdef __DCE
     SYSTEM::bind_cpuid(CPUID::FEED_DCE_CPUID, 0);
-    auto* q = QUEUE::get_dce2log();
+    auto* q = QUEUE::get_dce2user();
 #endif
 #ifdef __CZCE
     SYSTEM::bind_cpuid(CPUID::FEED_CZCE_CPUID, 0);
-    auto* q = QUEUE::get_czce2log();
+    auto* q = QUEUE::get_czce2user();
 #endif
 
     if (q) 
