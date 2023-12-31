@@ -43,43 +43,31 @@ void Strategy::run(Strategy* pStrategy)
 
     if (pUserStrategy && q_out)
     {
-#ifdef __SHFE
         auto reader_shfe = q_shfe->getReader();
-        auto* q_shfe = QUEUE::get_shfe2user();
-#endif
-
-#ifdef __DCE
-        auto* q_dce = QUEUE::get_dce2user();
         auto reader_dce = q_dce->getReader();
-#endif
-
-#ifdef __CZCE
-        auto* q_czce = QUEUE::get_czce2user();
         auto reader_czce = q_czce->getReader();
-#endif
+
+        auto* q_shfe = QUEUE::get_shfe2user();
+        auto* q_dce = QUEUE::get_dce2user();
+        auto* q_czce = QUEUE::get_czce2user();
         
         MdFeed* input = nullptr;
         int64_t ns_done = 0;
 
         while (pStrategy->running)
         {
-#ifdef __SHFE
             input = reader_shfe.read();
             if (input) {
                 ns_done = process(input, q_out, pUserStrategy);
                 input = nullptr;
             }
-#endif
 
-#ifdef __DCE
             input = reader_dce.read();
             if (input) {
                 ns_done = process(input, q_out, pUserStrategy);
                 input = nullptr;
             }
-#endif
-            
-#ifdef __CZCE
+
             input = reader_czce.read();
             if (input) {
                 ns_done = process(input, q_out, pUserStrategy);
@@ -88,7 +76,7 @@ void Strategy::run(Strategy* pStrategy)
 
             ns_done = pUserStrategy->on_delayed_event(ns_done);
         }
-#endif
+
         delete pUserStrategy;
         pUserStrategy = nullptr;
     }
