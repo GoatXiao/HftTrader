@@ -659,36 +659,37 @@ void Agent::run()
 #else
                     for (size_t i = 0; i < N_SIM; i++)
                     {
+                        Agent::m_pOspi = Agent::m_vpOspi.at(i);
+                        Agent::m_pAgent = Agent::m_vpAgent.at(i);
 
+                        int64_t ns = TIMER::tsc();
+                        auto* p = (UserStrategyBase::SIGNAL*)(header + 1);
+                        const auto* p_cfg = p->p_cfg;
+                        auto* p_user = p->p_user;
+
+                        int inst_id = p_cfg->inst_id;
+                        auto* state = Agent::m_pOspi->get(inst_id);
+                        state->ns_data = p->ns_data; //行情抵达时间
+                        state->ns_signal = p->ns_done; //策略完成
+
+                        state->set(
+                            header->userdata,
+                            p->bid, p->ask,
+                            p->bidvol, p->askvol
+                        );
+
+                        Agent::m_pOspi->handle_order(inst_id);
+                        while (
+                            qcbtoa->tryPop(
+                                [&](Queue::CBTOA* cbtoa) {
+                                    Agent::m_pAgent->handle_cb(cbtoa);
+                                }
+                            )
+                            ); // exhaustive
+
+                        p_user->on_execute(header->msg_type, p);
+                        state->guard(); //事后风控
                     }
-
-                    int64_t ns = TIMER::tsc();
-                    auto* p = (UserStrategyBase::SIGNAL*)(header + 1);
-                    const auto* p_cfg = p->p_cfg;
-                    auto* p_user = p->p_user;
-
-                    int inst_id = p_cfg->inst_id;
-                    auto* state = Agent::m_pOspi->get(inst_id);
-                    state->ns_data = p->ns_data; //行情抵达时间
-                    state->ns_signal = p->ns_done; //策略完成
-
-                    state->set(
-                        header->userdata,
-                        p->bid, p->ask,
-                        p->bidvol, p->askvol
-                    );
-
-                    Agent::m_pOspi->handle_order(inst_id);
-                    while (
-                        qcbtoa->tryPop(
-                            [&](Queue::CBTOA* cbtoa) {
-                                Agent::m_pAgent->handle_cb(cbtoa);
-                            }
-                        )
-                        ); // exhaustive
-
-                    p_user->on_execute(header->msg_type, p);
-                    state->guard(); //事后风控
 
                     Tools::unlock_sim();
 #endif
