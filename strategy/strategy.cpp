@@ -43,14 +43,14 @@ void Strategy::run(Strategy* pStrategy)
 
     if (pUserStrategy && q_out)
     {
-        auto reader_shfe = q_shfe->getReader();
-        auto reader_dce = q_dce->getReader();
-        auto reader_czce = q_czce->getReader();
-
         auto* q_shfe = QUEUE::get_shfe2user();
         auto* q_dce = QUEUE::get_dce2user();
         auto* q_czce = QUEUE::get_czce2user();
         
+        auto reader_shfe = q_shfe->getReader();
+        auto reader_dce = q_dce->getReader();
+        auto reader_czce = q_czce->getReader();
+
         MdFeed* input = nullptr;
         int64_t ns_done = 0;
 

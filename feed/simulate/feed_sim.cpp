@@ -249,7 +249,7 @@ void Feed_SIM::run()
             assert(feed.p_cfg != nullptr); // 不应该是nullptr
             FEED::set(&feed);
 
-            q->write(feed);
+            q->write<MdFeed>(feed);
 
             //q->blockPush([&](MdFeed* data) {
             //    memcpy(data, &feed, sizeof(MdFeed));
