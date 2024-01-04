@@ -15,8 +15,7 @@
 bool Agent::running = true;
 
 #ifdef __SIMULATE
-std::vector<OfferBase*> Agent::m_vpOspi = std::vector<OfferBase*>();
-std::vector<Agent*> Agent::m_vpAgent = std::vector<Agent*>();
+std::vector<std::unique_ptr<OfferBase>> Agent::m_vpOspi = std::vector<std::unique_ptr<OfferBase>>();
 #endif
 
 Agent* Agent::m_pAgent = nullptr;
@@ -346,8 +345,12 @@ Agent::Agent()
 
 Agent::~Agent()
 {
+#ifndef __SIMULATE
     delete m_pOspi;
     m_pOspi = nullptr;
+#else
+    m_vpOspi.clear();
+#endif
 }
 
 void Agent::close()
@@ -378,11 +381,7 @@ void Agent::init()
         m_vpOspi.resize(N_SIM);
         for (int i = 0; i < N_SIM; i++)
         {
-            OfferBase* pOspi = new SimulateOSpi();
-            if (pOspi)
-            {
-                m_vpOspi.push_back(pOspi);
-            }
+            m_vpOspi.push_back(std::make_unique<SimulateOSpi>());
         }
 #endif
 
@@ -401,18 +400,6 @@ void Agent::init()
 
     m_atol_q = QUEUE::get_agent2log();
     m_pAgent = this;
-
-#ifdef __SIMULATE
-    m_vpAgent.resize(N_SIM);
-    for (int i = 0; i < N_SIM; i++)
-    {
-        Agent* pAgent = this;
-        if (pOspi)
-        {
-            m_vpAgent.push_back(pAgent);
-        }
-    }
-#endif
 }
 
 void Agent::run_cb()
@@ -659,8 +646,11 @@ void Agent::run()
 #else
                     for (size_t i = 0; i < N_SIM; i++)
                     {
-                        Agent::m_pOspi = Agent::m_vpOspi.at(i);
-                        Agent::m_pAgent = Agent::m_vpAgent.at(i);
+                        Agent::m_pOspi = Agent::m_vpOspi.at(i).get();
+                        if (!Agent::m_pOspi)
+                        {
+                            continue;
+                        }
 
                         int64_t ns = TIMER::tsc();
                         auto* p = (UserStrategyBase::SIGNAL*)(header + 1);

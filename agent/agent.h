@@ -11,9 +11,8 @@ public:
     ~Agent();
 
 #ifdef __SIMULATE
-#define N_SIM = 10000;//回测参数的组数
-    static std::vector<OfferBase*> m_vpOspi;
-    static std::vector<Agent*> m_vpAgent;
+#define N_SIM 10000 //回测参数的组数
+    static std::vector<std::unique_ptr<OfferBase>> m_vpOspi;
 #endif
 
     static OfferBase* m_pOspi;

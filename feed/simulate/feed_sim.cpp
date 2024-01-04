@@ -249,9 +249,11 @@ void Feed_SIM::run()
             assert(feed.p_cfg != nullptr); // 不应该是nullptr
             FEED::set(&feed);
 
-            q->blockPush([&](MdFeed* data) {
-                memcpy(data, &feed, sizeof(MdFeed));
-            });
+            q->write(feed);
+
+            //q->blockPush([&](MdFeed* data) {
+            //    memcpy(data, &feed, sizeof(MdFeed));
+            //});
             Tools::lock_sim();
 
             if (i % n == 0) {
