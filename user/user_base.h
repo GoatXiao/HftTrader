@@ -27,10 +27,10 @@ public:
     // strategy
     virtual int on_new_md(int) = 0;
     virtual uint16_t allocate_size(int) = 0;
-	virtual void on_new_event(int, const MdFeed*, uint16_t*, SIGNAL*) = 0;
+    virtual void on_new_event(int, const MdFeed*, uint16_t*, SIGNAL*) = 0;
 
     // agent
-	virtual void on_execute(uint16_t, const SIGNAL*) = 0;
+    virtual void on_execute(uint16_t, const SIGNAL*) = 0;
 
     virtual void on_send_err_rtn(Order*, int) { };
     virtual void on_cancel_rtn(Order*, int) { };

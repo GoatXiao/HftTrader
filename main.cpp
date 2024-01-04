@@ -27,12 +27,9 @@ int main(int argc, char* argv[])
     pLogger->LAUNCH_SYSTEM();
 
 #ifdef __SIMULATE
-
     Core* pSIM = new Core(PLT_FEED_SIMULATE);
     pSIM->LAUNCH_SYSTEM();
-
 #else
-
     //启动SHFE行情
     Core* pSHFE = new Core(PLT_FEED_SHFE);
     pSHFE->LAUNCH_SYSTEM();
@@ -44,7 +41,6 @@ int main(int argc, char* argv[])
     //启动CZCE行情
     Core* pCZCE = new Core(PLT_FEED_CZCE);
     pCZCE->LAUNCH_SYSTEM();
-
 #endif
 
     //启动执行线程和回报线程

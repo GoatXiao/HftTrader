@@ -46,7 +46,7 @@ void Strategy::run(Strategy* pStrategy)
         auto* q_shfe = QUEUE::get_shfe2user();
         auto* q_dce = QUEUE::get_dce2user();
         auto* q_czce = QUEUE::get_czce2user();
-        
+
         auto reader_shfe = q_shfe->getReader();
         auto reader_dce = q_dce->getReader();
         auto reader_czce = q_czce->getReader();
@@ -67,7 +67,7 @@ void Strategy::run(Strategy* pStrategy)
                 ns_done = process(input, q_out, pUserStrategy);
                 input = nullptr;
             }
-
+            
             input = reader_czce.read();
             if (input) {
                 ns_done = process(input, q_out, pUserStrategy);
@@ -76,7 +76,7 @@ void Strategy::run(Strategy* pStrategy)
 
             ns_done = pUserStrategy->on_delayed_event(ns_done);
         }
-
+    
         delete pUserStrategy;
         pUserStrategy = nullptr;
     }

@@ -35,8 +35,7 @@ public:
     template<typename Writer>
     void write(Writer writer) {
         auto& blk = blks[++write_idx % CNT]; // write from 1
-        memcpy(&writer, &(blk.data), sizeof(Writer));
-        //writer(blk.data);
+        writer(blk.data);
         ((std::atomic<uint32_t>*)&blk.idx)->store(write_idx, std::memory_order_release);
     };
 

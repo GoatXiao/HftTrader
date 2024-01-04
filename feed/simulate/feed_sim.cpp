@@ -221,12 +221,10 @@ void Feed_SIM::run()
     SYSTEM::bind_cpuid(CPUID::FEED_SHFE_CPUID, 0);
     auto* q = QUEUE::get_shfe2user();
 #endif
-
 #ifdef __DCE
     SYSTEM::bind_cpuid(CPUID::FEED_DCE_CPUID, 0);
     auto* q = QUEUE::get_dce2user();
 #endif
-
 #ifdef __CZCE
     SYSTEM::bind_cpuid(CPUID::FEED_CZCE_CPUID, 0);
     auto* q = QUEUE::get_czce2user();
@@ -249,11 +247,9 @@ void Feed_SIM::run()
             assert(feed.p_cfg != nullptr); // 不应该是nullptr
             FEED::set(&feed);
 
-            q->write<MdFeed>(feed);
-
-            //q->blockPush([&](MdFeed* data) {
-            //    memcpy(data, &feed, sizeof(MdFeed));
-            //});
+            q->blockPush([&](MdFeed* data) {
+                memcpy(data, &feed, sizeof(MdFeed));
+            });
             Tools::lock_sim();
 
             if (i % n == 0) {

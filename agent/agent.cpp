@@ -14,13 +14,8 @@
 
 bool Agent::running = true;
 
-#ifdef __SIMULATE
-std::vector<std::unique_ptr<OfferBase>> Agent::m_vpOspi = std::vector<std::unique_ptr<OfferBase>>();
-#endif
-
 Agent* Agent::m_pAgent = nullptr;
 OfferBase* Agent::m_pOspi = nullptr;
-
 
 namespace TRADER 
 {
@@ -345,12 +340,8 @@ Agent::Agent()
 
 Agent::~Agent()
 {
-#ifndef __SIMULATE
     delete m_pOspi;
     m_pOspi = nullptr;
-#else
-    m_vpOspi.clear();
-#endif
 }
 
 void Agent::close()
@@ -378,11 +369,7 @@ void Agent::init()
 #endif
 
 #ifdef __SIMULATE
-        m_vpOspi.resize(N_SIM);
-        for (int i = 0; i < N_SIM; i++)
-        {
-            m_vpOspi.push_back(std::make_unique<SimulateOSpi>());
-        }
+        m_pOspi = new SimulateOSpi();
 #endif
 
 #ifdef __OFFER_YD
@@ -624,7 +611,6 @@ void Agent::run()
             q->tryPop(
                 [&](Queue::qUTOA::MsgHeader* header) 
                 {
-#ifndef __SIMULATE
                     int64_t ns = TIMER::tsc();
                     auto* p = (UserStrategyBase::SIGNAL*)(header + 1);
                     const auto* p_cfg = p->p_cfg;
@@ -636,51 +622,24 @@ void Agent::run()
                     state->ns_signal = p->ns_done; //策略完成
 
                     state->set(
-                        header->userdata,
-                        p->bid, p->ask,
+                        header->userdata, 
+                        p->bid, p->ask, 
                         p->bidvol, p->askvol
                     );
 
+#ifdef __SIMULATE
+                    Agent::m_pOspi->handle_order(inst_id);
+                    while (
+                        qcbtoa->tryPop(
+                            [&](Queue::CBTOA* cbtoa) {
+                                Agent::m_pAgent->handle_cb(cbtoa);
+                            }
+                        )
+                    ); // exhaustive
+#endif
                     p_user->on_execute(header->msg_type, p);
                     state->guard(); //事后风控
-#else
-                    for (size_t i = 0; i < N_SIM; i++)
-                    {
-                        Agent::m_pOspi = Agent::m_vpOspi.at(i).get();
-                        if (!Agent::m_pOspi)
-                        {
-                            continue;
-                        }
-
-                        int64_t ns = TIMER::tsc();
-                        auto* p = (UserStrategyBase::SIGNAL*)(header + 1);
-                        const auto* p_cfg = p->p_cfg;
-                        auto* p_user = p->p_user;
-
-                        int inst_id = p_cfg->inst_id;
-                        auto* state = Agent::m_pOspi->get(inst_id);
-                        state->ns_data = p->ns_data; //行情抵达时间
-                        state->ns_signal = p->ns_done; //策略完成
-
-                        state->set(
-                            header->userdata,
-                            p->bid, p->ask,
-                            p->bidvol, p->askvol
-                        );
-
-                        Agent::m_pOspi->handle_order(inst_id);
-                        while (
-                            qcbtoa->tryPop(
-                                [&](Queue::CBTOA* cbtoa) {
-                                    Agent::m_pAgent->handle_cb(cbtoa);
-                                }
-                            )
-                            ); // exhaustive
-
-                        p_user->on_execute(header->msg_type, p);
-                        state->guard(); //事后风控
-                    }
-
+#ifdef __SIMULATE
                     Tools::unlock_sim();
 #endif
                 }
